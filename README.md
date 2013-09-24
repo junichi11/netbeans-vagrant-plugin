@@ -13,6 +13,11 @@ Please check the following site:
 - NetBeans 7.3 or newer
 - Vagrant 1.3.1 or newer
 
+## Install
+
+Please download a nbm from Plugin Portal:  
+[NetBeans Vagrant Plugin](http://plugins.netbeans.org/plugin/50630/vagrant)
+
 ## Usage
 
 - set a vagrant path to Options
