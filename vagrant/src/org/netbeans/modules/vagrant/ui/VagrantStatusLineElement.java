@@ -258,6 +258,9 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
      */
     @NbBundle.Messages("VagrantStatusLineElement.reload=Reloading...")
     private void reloadStatus() {
+        if (project == null || !VagrantUtils.hasVagrantfile(project.getProjectDirectory())) {
+            return;
+        }
         setStatus(Bundle.VagrantStatusLineElement_reload());
         statusLabel.paintImmediately(statusLabel.getBounds());
         setStatus(getStatus(project, true));
