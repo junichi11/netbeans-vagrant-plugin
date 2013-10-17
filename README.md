@@ -122,6 +122,15 @@ Please try to start the virtual machine.
 
 Please try to double-click on statusbar.
 
+### sudo command problem
+
+For example, in case of sudo command is used within vagrant plugins:
+Probably, the following message will be shown *"sudo: no tty present and no askpass program specified"*
+
+If passwd is visible, we can avoid this. **But this is not good.**
+So, please run vagrant command with terminal if this message is shown.
+
+
 ## Issues
 
 If you hava some problems, please submit them to the github issue tracker.
