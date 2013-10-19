@@ -62,10 +62,13 @@ import org.netbeans.api.extexecution.input.InputProcessors;
 import org.netbeans.api.extexecution.input.LineProcessor;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
+import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 import org.netbeans.modules.vagrant.ui.VagrantStatusLineElement;
 import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.netbeans.modules.vagrant.utils.UiUtils;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.ChangeSupport;
@@ -474,7 +477,21 @@ public final class Vagrant {
             return statuses;
         }
 
-        workDir(FileUtil.toFile(project.getProjectDirectory()));
+        // set working directory
+        String vagrantPath = VagrantPreferences.getVagrantPath(project);
+        if (StringUtils.isEmpty(vagrantPath)) {
+            workDir(FileUtil.toFile(project.getProjectDirectory()));
+        } else {
+            File vagrantRoot = new File(vagrantPath);
+            if (vagrantRoot.exists()) {
+                workDir(vagrantRoot);
+            } else {
+                VagrantPreferences.setVagrantPath(project, ""); // NOI18N
+                LOGGER.log(Level.WARNING, "Vagrant root path is invalid. clear the path settings.");
+                workDir(FileUtil.toFile(project.getProjectDirectory()));
+            }
+        }
+
         VagrantLineProcessor lineProcessor = new VagrantLineProcessor();
         setCommand(STATUS_COMMAND);
         descriptor = getSilentDescriptor()
@@ -630,11 +647,27 @@ public final class Vagrant {
      * @param params
      * @return
      */
+    @NbBundle.Messages("Vagrant.vagrant.root.invalid=Vagrant root is invalid. Please check Vagrant root settings.")
     public Future<Integer> runCommand(Project project, String command, String title, List<String> params) {
         if (project != null && workDir == null) {
-            FileObject projectDirectory = project.getProjectDirectory();
-            if (projectDirectory != null) {
-                workDir = FileUtil.toFile(projectDirectory);
+            FileObject workingDirectory = project.getProjectDirectory();
+            String vagrantPath = VagrantPreferences.getVagrantPath(project);
+            if (workingDirectory != null) {
+                // check only custom path
+                boolean hasVagrantfile = true;
+                if (!StringUtils.isEmpty(vagrantPath)) {
+                    File vagrantRoot = new File(vagrantPath);
+                    workingDirectory = FileUtil.toFileObject(vagrantRoot);
+                    hasVagrantfile = VagrantUtils.hasVagrantfile(workingDirectory);
+                }
+
+                // vagrant root is invalid : show dialog
+                if (workingDirectory == null || !hasVagrantfile) {
+                    NotifyDescriptor.Message message = new NotifyDescriptor.Message(Bundle.Vagrant_vagrant_root_invalid(), NotifyDescriptor.WARNING_MESSAGE);
+                    DialogDisplayer.getDefault().notify(message);
+                    return null;
+                }
+                workDir = FileUtil.toFile(workingDirectory);
             }
         }
         List<String> commands = StringUtils.explode(command, " "); // NOI18N

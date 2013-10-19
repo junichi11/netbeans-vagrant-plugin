@@ -46,6 +46,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -64,12 +65,15 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
+import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 import org.netbeans.modules.vagrant.ui.actions.VagrantAction;
 import org.netbeans.modules.vagrant.ui.actions.VagrantActionMenu;
 import org.netbeans.modules.vagrant.utils.FileUtils;
+import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.awt.StatusLineElementProvider;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
@@ -171,8 +175,8 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
                 project = currentProject;
 
                 // has Vagrantfile?
-                FileObject projectDirectory = currentProject.getProjectDirectory();
-                if (!VagrantUtils.hasVagrantfile(projectDirectory)) {
+                FileObject vagrantRoot = getVagrantRoot();
+                if (!VagrantUtils.hasVagrantfile(vagrantRoot)) {
                     setStatus("not created");
                     return;
                 }
@@ -258,12 +262,38 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
      */
     @NbBundle.Messages("VagrantStatusLineElement.reload=Reloading...")
     private void reloadStatus() {
-        if (project == null || !VagrantUtils.hasVagrantfile(project.getProjectDirectory())) {
+        if (project == null) {
+            return;
+        }
+
+        // get vagrant root
+        FileObject vagrantRoot = getVagrantRoot();
+        if (!VagrantUtils.hasVagrantfile(vagrantRoot)) {
             return;
         }
         setStatus(Bundle.VagrantStatusLineElement_reload());
         statusLabel.paintImmediately(statusLabel.getBounds());
         setStatus(getStatus(project, true));
+    }
+
+    /**
+     * Get vagrant root. If vagrant root path is not set, return project
+     * directory.
+     *
+     * @return vagrant root directory
+     */
+    private FileObject getVagrantRoot() {
+        assert project != null;
+        String vagrantPath = VagrantPreferences.getVagrantPath(project);
+        if (StringUtils.isEmpty(vagrantPath)) {
+            return project.getProjectDirectory();
+        }
+        File vagrantRoot = new File(vagrantPath);
+        if (!vagrantRoot.exists()) {
+            return project.getProjectDirectory();
+        }
+
+        return FileUtil.toFileObject(vagrantRoot);
     }
 
     /**
