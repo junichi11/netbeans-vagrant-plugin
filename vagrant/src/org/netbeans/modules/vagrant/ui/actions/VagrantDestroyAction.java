@@ -46,6 +46,7 @@ import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
+import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -80,5 +81,8 @@ public final class VagrantDestroyAction extends VagrantAction {
         } catch (InvalidVagrantExecutableException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
+
+        // clear settings
+        VagrantPreferences.setVagrantPath(project, ""); // NOI18N
     }
 }

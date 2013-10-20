@@ -41,11 +41,15 @@
  */
 package org.netbeans.modules.vagrant.ui.actions;
 
+import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
+import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 import org.netbeans.modules.vagrant.ui.VagrantInitPanel;
 import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.netbeans.modules.vagrant.utils.UiUtils;
@@ -53,14 +57,17 @@ import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.filesystems.FileUtil;
+import org.openide.util.NbBundle;
 import org.openide.util.NbBundle.Messages;
 
 @Messages("CTL_VagrantInitAction=Vagrant init")
-public final class VagrantInitAction extends VagrantAction {
+public final class VagrantInitAction extends VagrantAction implements ChangeListener {
 
     private static final long serialVersionUID = -7941158918859555393L;
     private VagrantInitPanel panel;
     private static final Logger LOGGER = Logger.getLogger(VagrantInitAction.class.getName());
+    private Project project;
 
     public VagrantInitAction() {
         super(Bundle.CTL_VagrantInitAction(), VagrantUtils.getIcon(VagrantUtils.INIT_ICON_16));
@@ -68,10 +75,19 @@ public final class VagrantInitAction extends VagrantAction {
 
     @Override
     public void actionPerformed(Project project) {
-        // open panel
+        if (existsVagrant(project)) {
+            return;
+        }
+
+        this.project = project;
         VagrantInitPanel initPanel = getPanel();
+        initPanel.setVagrantRoot(""); // NOI18N
+
+        // add listener
+        initPanel.addChangeListener(this);
         String error = ""; // NOI18N
         try {
+            // open panel
             DialogDescriptor descriptor = initPanel.showDialog();
             if (descriptor.getValue() != DialogDescriptor.OK_OPTION) {
                 return;
@@ -87,12 +103,105 @@ public final class VagrantInitAction extends VagrantAction {
             return;
         }
 
+        runInit(project);
+    }
+
+    @NbBundle.Messages({
+        "# {0} - working directory",
+        "VagrantInitAction.run.init.info=vagrant init - {0}"
+    })
+    private void runInit(Project project) {
+        String vagrantRootPath = getPanel().getVagrantRoot();
         try {
             Vagrant vagrant = Vagrant.getDefault();
-            vagrant.init(project, initPanel.getBoxName(), ""); // NOI18N
+            // set working directory
+            if (!StringUtils.isEmpty(vagrantRootPath)) {
+                vagrant.workDir(new File(vagrantRootPath));
+            }
+            // init
+            vagrant.init(project, getPanel().getBoxName(), ""); // NOI18N
         } catch (InvalidVagrantExecutableException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
+        LOGGER.log(Level.INFO, Bundle.VagrantInitAction_run_init_info(vagrantRootPath));
+
+        setVagrantRootPath(project, vagrantRootPath);
+    }
+
+    private boolean existsVagrant(Project project) {
+        String vagrantPath = VagrantPreferences.getVagrantPath(project);
+        if (!StringUtils.isEmpty(vagrantPath)) {
+            showWarningDialog();
+            return true;
+        } else {
+            if (VagrantUtils.hasVagrantfile(project.getProjectDirectory())) {
+                showWarningDialog();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @NbBundle.Messages("VagrantInitAction.vagrantfile.exists=Vagrantfile already exists or Vagrant root is already set to project properties")
+    private void showWarningDialog() {
+        NotifyDescriptor.Message message = new NotifyDescriptor.Message(Bundle.VagrantInitAction_vagrantfile_exists(), NotifyDescriptor.WARNING_MESSAGE);
+        DialogDisplayer.getDefault().notify(message);
+    }
+
+    private void setVagrantRootPath(Project project, String vagrantRootPath) {
+        if (StringUtils.isEmpty(vagrantRootPath)) {
+            return;
+        }
+        // set path to project properties
+        // XXX check Vagrantfile?
+        VagrantPreferences.setVagrantPath(project, vagrantRootPath);
+    }
+
+    @NbBundle.Messages({
+        "VagrantInitAction.vagrant.path.notAbsolute=The path must be absolute path.",
+        "VagrantInitAction.vagrant.root.notFound=Existing path must be set.",
+        "VagrantInitAction.vagrant.root.notDirectory=The path must be directory",
+        "VagrantInitAction.vagrant.root.hasVagrantfile=Vagrantfile already exists"})
+    private void validate() {
+        String vagrantRootPath = getPanel().getVagrantRoot();
+        if (StringUtils.isEmpty(vagrantRootPath)) {
+            getPanel().setOKButtonEnabled(true);
+            getPanel().setError(" "); // NOI18N
+            return;
+        }
+
+        File vagrantRoot = new File(vagrantRootPath);
+        // absolute path?
+        if (!vagrantRoot.isAbsolute()) {
+            getPanel().setOKButtonEnabled(false);
+            getPanel().setError(Bundle.VagrantInitAction_vagrant_path_notAbsolute());
+            return;
+        }
+
+        // existing path?
+        if (!vagrantRoot.exists()) {
+            getPanel().setOKButtonEnabled(false);
+            getPanel().setError(Bundle.VagrantInitAction_vagrant_root_notFound());
+            return;
+        }
+
+        // directory?
+        if (!vagrantRoot.isDirectory()) {
+            getPanel().setOKButtonEnabled(false);
+            getPanel().setError(Bundle.VagrantInitAction_vagrant_root_notDirectory());
+            return;
+        }
+
+        // has Vagrantfile?
+        if (VagrantUtils.hasVagrantfile(FileUtil.toFileObject(vagrantRoot))) {
+            getPanel().setOKButtonEnabled(false);
+            getPanel().setError(Bundle.VagrantInitAction_vagrant_root_hasVagrantfile());
+            return;
+        }
+
+        // everything ok
+        getPanel().setOKButtonEnabled(true);
+        getPanel().setError(" "); // NOI18N
     }
 
     private VagrantInitPanel getPanel() {
@@ -100,5 +209,10 @@ public final class VagrantInitAction extends VagrantAction {
             panel = new VagrantInitPanel();
         }
         return panel;
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        validate();
     }
 }

@@ -42,13 +42,22 @@
 package org.netbeans.modules.vagrant.ui;
 
 import java.awt.Dialog;
+import java.io.File;
 import java.util.List;
 import javax.swing.JPanel;
+import javax.swing.UIManager;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
+import org.netbeans.modules.vagrant.ui.options.GeneralPanel;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
+import org.openide.filesystems.FileChooserBuilder;
+import org.openide.filesystems.FileUtil;
+import org.openide.util.ChangeSupport;
 import org.openide.util.NbBundle;
 
 /**
@@ -58,6 +67,9 @@ import org.openide.util.NbBundle;
 public class VagrantInitPanel extends JPanel {
 
     private static final long serialVersionUID = 8375589254881469226L;
+    private ChangeSupport changeSupport = new ChangeSupport(this);
+    private DialogDescriptor dialogDescriptor;
+    private static final String VAGRANT_LAST_FOLDER_SUFFIX = ".vagrant-root"; // NOI18N
 
     /**
      * Creates new form VagrantInitPanel
@@ -67,6 +79,7 @@ public class VagrantInitPanel extends JPanel {
         init();
     }
 
+    @NbBundle.Messages("VagrantInitPanel.vagrant.root.path=Default(empty) is project directory.")
     private void init() {
         try {
             // get available boxes
@@ -80,6 +93,8 @@ public class VagrantInitPanel extends JPanel {
             }
         } catch (InvalidVagrantExecutableException ex) {
         }
+        vagrantRootTextField.getDocument().addDocumentListener(new DefaultDocumentListener());
+        errorLabel.setText(Bundle.VagrantInitPanel_vagrant_root_path());
     }
 
     public String getBoxName() {
@@ -95,11 +110,43 @@ public class VagrantInitPanel extends JPanel {
         if (itemCount == 0) {
             throw new Exception(Bundle.VagrantInitPanel_dialog_error());
         }
-        DialogDescriptor dialogDescriptor = new DialogDescriptor(this, Bundle.VagrantInitPanel_dialog_title());
+        this.dialogDescriptor = new DialogDescriptor(this, Bundle.VagrantInitPanel_dialog_title());
         Dialog dialog = DialogDisplayer.getDefault().createDialog(dialogDescriptor);
         dialog.pack();
         dialog.setVisible(true);
         return dialogDescriptor;
+    }
+
+    public void setOKButtonEnabled(boolean isEnabled) {
+        if (dialogDescriptor == null) {
+            return;
+        }
+        dialogDescriptor.setValid(isEnabled);
+    }
+
+    public String getVagrantRoot() {
+        return vagrantRootTextField.getText().trim();
+    }
+
+    public void setVagrantRoot(String path) {
+        vagrantRootTextField.setText(path);
+    }
+
+    public void setError(String message) {
+        errorLabel.setForeground(UIManager.getColor("nb.errorForeground")); // NOI18N
+        errorLabel.setText(message);
+    }
+
+    public void addChangeListener(ChangeListener listener) {
+        changeSupport.addChangeListener(listener);
+    }
+
+    public void removeChangeListener(ChangeListener listener) {
+        changeSupport.removeChangeListener(listener);
+    }
+
+    private void fireChange() {
+        changeSupport.fireChange();
     }
 
     /**
@@ -113,8 +160,25 @@ public class VagrantInitPanel extends JPanel {
 
         boxNameLabel = new javax.swing.JLabel();
         boxNameComboBox = new javax.swing.JComboBox();
+        vagrantRootLabel = new javax.swing.JLabel();
+        vagrantRootTextField = new javax.swing.JTextField();
+        errorLabel = new javax.swing.JLabel();
+        browseButton = new javax.swing.JButton();
 
         org.openide.awt.Mnemonics.setLocalizedText(boxNameLabel, org.openide.util.NbBundle.getMessage(VagrantInitPanel.class, "VagrantInitPanel.boxNameLabel.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(vagrantRootLabel, org.openide.util.NbBundle.getMessage(VagrantInitPanel.class, "VagrantInitPanel.vagrantRootLabel.text")); // NOI18N
+
+        vagrantRootTextField.setText(org.openide.util.NbBundle.getMessage(VagrantInitPanel.class, "VagrantInitPanel.vagrantRootTextField.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(errorLabel, org.openide.util.NbBundle.getMessage(VagrantInitPanel.class, "VagrantInitPanel.errorLabel.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(browseButton, org.openide.util.NbBundle.getMessage(VagrantInitPanel.class, "VagrantInitPanel.browseButton.text")); // NOI18N
+        browseButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                browseButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -122,10 +186,24 @@ public class VagrantInitPanel extends JPanel {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(boxNameLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(boxNameComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(vagrantRootLabel)
+                            .addComponent(boxNameLabel))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(boxNameComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 229, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(vagrantRootTextField)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(browseButton))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(errorLabel)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -134,11 +212,61 @@ public class VagrantInitPanel extends JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(boxNameLabel)
                     .addComponent(boxNameComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(vagrantRootLabel)
+                    .addComponent(vagrantRootTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(browseButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(errorLabel)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    @NbBundle.Messages("VagrantInitPanel.browse_title=Select Vagrant Root")
+    private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseButtonActionPerformed
+        File vagrant = new FileChooserBuilder(GeneralPanel.class.getName() + VAGRANT_LAST_FOLDER_SUFFIX)
+                .setTitle(Bundle.VagrantInitPanel_browse_title())
+                .setDirectoriesOnly(true)
+                .showOpenDialog();
+        if (vagrant != null) {
+            vagrant = FileUtil.normalizeFile(vagrant);
+            String vagrantPath = vagrant.getAbsolutePath();
+            vagrantRootTextField.setText(vagrantPath);
+        }
+    }//GEN-LAST:event_browseButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox boxNameComboBox;
     private javax.swing.JLabel boxNameLabel;
+    private javax.swing.JButton browseButton;
+    private javax.swing.JLabel errorLabel;
+    private javax.swing.JLabel vagrantRootLabel;
+    private javax.swing.JTextField vagrantRootTextField;
     // End of variables declaration//GEN-END:variables
+
+    //~ Inner class
+    private class DefaultDocumentListener implements DocumentListener {
+
+        public DefaultDocumentListener() {
+        }
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            processUpdate();
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            processUpdate();
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            processUpdate();
+        }
+
+        private void processUpdate() {
+            fireChange();
+        }
+    }
 }
