@@ -734,7 +734,7 @@ public final class Vagrant {
         // XXX up command doesn't work fine with ExternalExecution API (ExeternalProcessBuilder)
         // VM status will be "aborted".
         // Use ProcessBuilder class(see: ProcessLounch class) as a workaround.
-        if (UP_COMMAND.equals(command)) {
+        if (UP_COMMAND.equals(command) || RESUME_COMMAND.equals(command)) {
             ArrayList<String> allParams = new ArrayList<String>();
             allParams.add(path);
             allParams.add(command);
