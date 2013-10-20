@@ -31,6 +31,15 @@ Please download a nbm from Plugin Portal:
 - Right-click Vagrant statusbar
 - Tools > Vagrant
 
+## Vagrant Root Settings
+
+We can set Vagrant Root directory to project properties.
+(Right-click project > properties > Vagrant)
+
+Default (i.e. Vagrant Root field is empty) is project directory.
+
+We can also set Vagrant Root with Init Action.
+
 ## Options
 
 Tools > Options > Miscellaneous > Vagrant
