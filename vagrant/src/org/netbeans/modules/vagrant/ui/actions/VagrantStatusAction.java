@@ -47,8 +47,15 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle.Messages;
 
+@ActionID(
+        category = "Vagrant",
+        id = "org.netbeans.modules.vagrant.ui.actions.VagrantStatusAction")
+@ActionRegistration(
+        displayName = "#CTL_VagrantStatusAction", lazy = false)
 @Messages("CTL_VagrantStatusAction=Vagrant status")
 public final class VagrantStatusAction extends VagrantAction {
 

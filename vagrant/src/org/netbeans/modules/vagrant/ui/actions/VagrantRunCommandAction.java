@@ -47,8 +47,15 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.ui.RunCommandPanel;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.DialogDescriptor;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle;
 
+@ActionID(
+        category = "Vagrant",
+        id = "org.netbeans.modules.vagrant.ui.actions.VagrantRunCommandAction")
+@ActionRegistration(
+        displayName = "#CTL_VagrantRunCommandAction", lazy = false)
 @NbBundle.Messages("CTL_VagrantRunCommandAction=Vagrant Run Command")
 public class VagrantRunCommandAction extends VagrantAction {
 

@@ -57,10 +57,17 @@ import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionRegistration;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.NbBundle;
 import org.openide.util.NbBundle.Messages;
 
+@ActionID(
+        category = "Vagrant",
+        id = "org.netbeans.modules.vagrant.ui.actions.VagrantInitAction")
+@ActionRegistration(
+        displayName = "#CTL_VagrantInitAction", lazy = false)
 @Messages("CTL_VagrantInitAction=Vagrant init")
 public final class VagrantInitAction extends VagrantAction implements ChangeListener {
 

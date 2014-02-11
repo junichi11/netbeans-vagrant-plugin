@@ -47,8 +47,15 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle;
 
+@ActionID(
+        category = "Vagrant",
+        id = "org.netbeans.modules.vagrant.ui.actions.VagrantResumeAction")
+@ActionRegistration(
+        displayName = "#CTL_VagrantResumeAction", lazy = false)
 @NbBundle.Messages("CTL_VagrantResumeAction=Vagrant resume")
 public class VagrantResumeAction extends VagrantAction {
 

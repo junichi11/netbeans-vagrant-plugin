@@ -50,9 +50,16 @@ import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle;
 import org.openide.util.NbBundle.Messages;
 
+@ActionID(
+        category = "Vagrant",
+        id = "org.netbeans.modules.vagrant.ui.actions.VagrantDestroyAction")
+@ActionRegistration(
+        displayName = "#CTL_VagrantDestroyAction", lazy = false)
 @Messages("CTL_VagrantDestroyAction=Vagrant destroy")
 public final class VagrantDestroyAction extends VagrantAction {
 
