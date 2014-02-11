@@ -148,7 +148,7 @@ public final class SearchPanel extends JPanel {
     }
 
     public String getSelectedItem() {
-        return (String) foundItemsList.getSelectedValue();
+        return foundItemsList.getSelectedValue();
     }
 
     void cancelDetection() {
@@ -188,7 +188,7 @@ public final class SearchPanel extends JPanel {
 
         detectedFilesLabel = new JLabel();
         foundItemsScrollPane = new JScrollPane();
-        foundItemsList = new JList();
+        foundItemsList = new JList<String>();
         messageLabel = new JLabel();
         progressBar = new JProgressBar();
 
@@ -248,7 +248,7 @@ public final class SearchPanel extends JPanel {
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private JLabel detectedFilesLabel;
-    private JList foundItemsList;
+    private JList<String> foundItemsList;
     private JScrollPane foundItemsScrollPane;
     private JLabel messageLabel;
     private JProgressBar progressBar;

@@ -101,7 +101,7 @@ public final class AddPluginsPanel extends JPanel {
 
     private void init() {
         availablePluginsList.setCellRenderer(new StripeListCellRenderer());
-        availablePluginsList.setModel(new DefaultListModel());
+        availablePluginsList.setModel(new DefaultListModel<String>());
         setInstalledPlugins();
         setPluginsTable();
     }
@@ -172,7 +172,7 @@ public final class AddPluginsPanel extends JPanel {
         plugins = VagrantPluginsSupport.getPlugins();
         if (plugins.isEmpty()) {
             filteredPlugins.clear();
-            DefaultListModel model = (DefaultListModel) availablePluginsList.getModel();
+            DefaultListModel<String> model = (DefaultListModel<String>) availablePluginsList.getModel();
             model.clear();
             model.add(0, Bundle.AddPluginsPanel_no_available_plugin());
             return;
@@ -181,7 +181,7 @@ public final class AddPluginsPanel extends JPanel {
     }
 
     private void updatePluginsTable() {
-        DefaultListModel model = (DefaultListModel) availablePluginsList.getModel();
+        DefaultListModel<String> model = (DefaultListModel<String>) availablePluginsList.getModel();
         model.clear();
         filteredPlugins.clear();
         String filter = getFilter();
@@ -236,7 +236,7 @@ public final class AddPluginsPanel extends JPanel {
     private void initComponents() {
 
         availablePluginsScrollPane = new javax.swing.JScrollPane();
-        availablePluginsList = new javax.swing.JList();
+        availablePluginsList = new javax.swing.JList<String>();
         availablePluginsLabel = new javax.swing.JLabel();
         reloadButton = new javax.swing.JButton();
         filterLabel = new javax.swing.JLabel();
@@ -347,7 +347,7 @@ public final class AddPluginsPanel extends JPanel {
     }//GEN-LAST:event_availablePluginsListValueChanged
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel availablePluginsLabel;
-    private javax.swing.JList availablePluginsList;
+    private javax.swing.JList<String> availablePluginsList;
     private javax.swing.JScrollPane availablePluginsScrollPane;
     private javax.swing.JLabel filterLabel;
     private javax.swing.JTextField filterTextField;

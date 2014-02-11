@@ -56,7 +56,7 @@ public class StripeListCellRenderer extends DefaultListCellRenderer {
     private static final long serialVersionUID = 499508647770943737L;
 
     @Override
-    public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+    public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
         JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
         Color background = list.getBackground();
         Color backgroundDarker = new Color(

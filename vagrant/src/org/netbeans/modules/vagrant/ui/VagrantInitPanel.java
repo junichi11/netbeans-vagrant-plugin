@@ -159,7 +159,7 @@ public class VagrantInitPanel extends JPanel {
     private void initComponents() {
 
         boxNameLabel = new javax.swing.JLabel();
-        boxNameComboBox = new javax.swing.JComboBox();
+        boxNameComboBox = new javax.swing.JComboBox<String>();
         vagrantRootLabel = new javax.swing.JLabel();
         vagrantRootTextField = new javax.swing.JTextField();
         errorLabel = new javax.swing.JLabel();
@@ -236,7 +236,7 @@ public class VagrantInitPanel extends JPanel {
         }
     }//GEN-LAST:event_browseButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JComboBox boxNameComboBox;
+    private javax.swing.JComboBox<String> boxNameComboBox;
     private javax.swing.JLabel boxNameLabel;
     private javax.swing.JButton browseButton;
     private javax.swing.JLabel errorLabel;

@@ -96,7 +96,7 @@ public class AddBoxesPanel extends JPanel {
     private void init() {
         setVagrantboxesLabel();
         vagrantboxesList.setCellRenderer(new StripeListCellRenderer());
-        vagrantboxesList.setModel(new DefaultListModel());
+        vagrantboxesList.setModel(new DefaultListModel<String>());
         setVagrantboxesTable();
     }
 
@@ -161,7 +161,7 @@ public class AddBoxesPanel extends JPanel {
         boxes = VagrantBoxesSupport.getBoxes();
         if (boxes.isEmpty()) {
             filteredBoxes.clear();
-            DefaultListModel model = (DefaultListModel) vagrantboxesList.getModel();
+            DefaultListModel<String> model = (DefaultListModel<String>) vagrantboxesList.getModel();
             model.clear();
             model.add(0, Bundle.AddBoxesPanel_no_available_box());
             return;
@@ -170,7 +170,7 @@ public class AddBoxesPanel extends JPanel {
     }
 
     private void updateVagrantboxesTable() {
-        DefaultListModel model = (DefaultListModel) vagrantboxesList.getModel();
+        DefaultListModel<String> model = (DefaultListModel<String>) vagrantboxesList.getModel();
         model.clear();
         filteredBoxes.clear();
         String filter = getFilter();
@@ -223,7 +223,7 @@ public class AddBoxesPanel extends JPanel {
         nameTextField = new javax.swing.JTextField();
         urlTextField = new javax.swing.JTextField();
         vagrantboxesScrollPane = new javax.swing.JScrollPane();
-        vagrantboxesList = new javax.swing.JList();
+        vagrantboxesList = new javax.swing.JList<String>();
         vagrantboxesLabel = new javax.swing.JLabel();
         reloadButton = new javax.swing.JButton();
         filterLabel = new javax.swing.JLabel();
@@ -339,7 +339,7 @@ public class AddBoxesPanel extends JPanel {
     private javax.swing.JLabel urlLabel;
     private javax.swing.JTextField urlTextField;
     private javax.swing.JLabel vagrantboxesLabel;
-    private javax.swing.JList vagrantboxesList;
+    private javax.swing.JList<String> vagrantboxesList;
     private javax.swing.JScrollPane vagrantboxesScrollPane;
     // End of variables declaration//GEN-END:variables
 

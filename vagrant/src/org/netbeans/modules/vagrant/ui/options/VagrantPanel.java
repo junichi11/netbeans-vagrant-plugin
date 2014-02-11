@@ -66,20 +66,20 @@ final class VagrantPanel extends JPanel implements ChangeListener {
     }
 
     private void init() {
-        categoryList.setModel(new DefaultListModel());
+        categoryList.setModel(new DefaultListModel<String>());
     }
 
     public void addCategoryPanel(String name, VagrantCategoryPanel panel) {
         if (categoryPanels.containsKey(name)) {
             categoryList.setSelectedValue(name, true);
         } else {
-            ((DefaultListModel) categoryList.getModel()).addElement(name);
+            ((DefaultListModel<String>) categoryList.getModel()).addElement(name);
             categoryPanels.put(name, panel);
         }
     }
 
     public VagrantCategoryPanel getSelectedPanel() {
-        String categoryName = (String) categoryList.getSelectedValue();
+        String categoryName = categoryList.getSelectedValue();
         return categoryPanels.get(categoryName);
     }
 
@@ -92,7 +92,7 @@ final class VagrantPanel extends JPanel implements ChangeListener {
     private void initComponents() {
 
         categoryScrollPane = new javax.swing.JScrollPane();
-        categoryList = new javax.swing.JList();
+        categoryList = new javax.swing.JList<String>();
         categoriesLabel = new javax.swing.JLabel();
         categoryPanel = new javax.swing.JPanel();
 
@@ -138,7 +138,7 @@ final class VagrantPanel extends JPanel implements ChangeListener {
     }// </editor-fold>//GEN-END:initComponents
 
     private void categoryListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_categoryListValueChanged
-        String categoryName = (String) categoryList.getSelectedValue();
+        String categoryName = categoryList.getSelectedValue();
         categoryPanel.setVisible(false);
         categoryPanel.removeAll();
         categoryPanel.add(categoryPanels.get(categoryName), BorderLayout.CENTER);
@@ -179,7 +179,7 @@ final class VagrantPanel extends JPanel implements ChangeListener {
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel categoriesLabel;
-    private javax.swing.JList categoryList;
+    private javax.swing.JList<String> categoryList;
     private javax.swing.JPanel categoryPanel;
     private javax.swing.JScrollPane categoryScrollPane;
     // End of variables declaration//GEN-END:variables

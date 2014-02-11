@@ -101,7 +101,7 @@ public class RunCommandPanel extends JPanel {
     }
 
     private void update() {
-        final DefaultListModel model = getListModel();
+        final DefaultListModel<String> model = getListModel();
         model.clear();
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -182,8 +182,8 @@ public class RunCommandPanel extends JPanel {
         return params.replaceAll(" +", " "); // NOI18N
     }
 
-    private DefaultListModel getListModel() {
-        return (DefaultListModel) commandList.getModel();
+    private DefaultListModel<String> getListModel() {
+        return (DefaultListModel<String>) commandList.getModel();
     }
 
     private void updateCommandTextField(String command) {
@@ -197,7 +197,7 @@ public class RunCommandPanel extends JPanel {
         Vagrant vagrant = Vagrant.getDefault();
         List<String> subcommandList = vagrant.getSubcommandList(subcommands);
         if (!subcommandList.isEmpty()) {
-            DefaultListModel model = getListModel();
+            DefaultListModel<String> model = getListModel();
             for (String subcommand : subcommandList) {
                 subcommand = command + " " + subcommand; // NOI18N
                 model.add(++selectedIndex, String.format("<html><b>%s</b></html>", subcommand)); // NOI18N
@@ -219,7 +219,7 @@ public class RunCommandPanel extends JPanel {
         parameterLabel = new javax.swing.JLabel();
         parameterTextField = new javax.swing.JTextField();
         commandScrollPane = new javax.swing.JScrollPane();
-        commandList = new javax.swing.JList();
+        commandList = new javax.swing.JList<String>();
         helpScrollPane = new javax.swing.JScrollPane();
         helpTextArea = new javax.swing.JTextArea();
         reloadButton = new javax.swing.JButton();
@@ -231,7 +231,7 @@ public class RunCommandPanel extends JPanel {
 
         parameterTextField.setText(org.openide.util.NbBundle.getMessage(RunCommandPanel.class, "RunCommandPanel.parameterTextField.text")); // NOI18N
 
-        commandList.setModel(new DefaultListModel());
+        commandList.setModel(new DefaultListModel<String>());
         commandList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         commandList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
@@ -326,7 +326,7 @@ public class RunCommandPanel extends JPanel {
         helpMap.clear();
     }//GEN-LAST:event_reloadButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JList commandList;
+    private javax.swing.JList<String> commandList;
     private javax.swing.JScrollPane commandScrollPane;
     private javax.swing.JTextField commandTextField;
     private javax.swing.JScrollPane helpScrollPane;

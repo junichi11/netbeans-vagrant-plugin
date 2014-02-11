@@ -89,7 +89,7 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service = StatusLineElementProvider.class)
 public class VagrantStatusLineElement implements StatusLineElementProvider, LookupListener, ChangeListener {
 
-    private Lookup.Result result = null;
+    private Lookup.Result<DataObject> result = null;
     private final JLabel statusLabel = new JLabel(""); // NOI18N
     private Project project;
     private Map<Project, String> statusCache = new HashMap<Project, String>();
@@ -304,8 +304,8 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
      */
     private FileObject getFileObject(LookupEvent lookupEvent) {
         // get DataObject
-        Lookup.Result lookupResult = (Lookup.Result) lookupEvent.getSource();
-        Collection c = lookupResult.allInstances();
+        Lookup.Result<?> lookupResult = (Lookup.Result) lookupEvent.getSource();
+        Collection<?> c = lookupResult.allInstances();
         DataObject dataObject = null;
         if (!c.isEmpty()) {
             dataObject = (DataObject) c.iterator().next();
