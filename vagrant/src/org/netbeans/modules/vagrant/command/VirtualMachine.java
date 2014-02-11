@@ -52,7 +52,7 @@ import org.openide.util.NbBundle;
  */
 public class VirtualMachine {
 
-    private String path;
+    private final String path;
 
     public VirtualMachine(String path) {
         this.path = path;

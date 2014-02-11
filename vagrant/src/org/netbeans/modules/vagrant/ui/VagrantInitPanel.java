@@ -67,7 +67,7 @@ import org.openide.util.NbBundle;
 public class VagrantInitPanel extends JPanel {
 
     private static final long serialVersionUID = 8375589254881469226L;
-    private ChangeSupport changeSupport = new ChangeSupport(this);
+    private final ChangeSupport changeSupport = new ChangeSupport(this);
     private DialogDescriptor dialogDescriptor;
     private static final String VAGRANT_LAST_FOLDER_SUFFIX = ".vagrant-root"; // NOI18N
 

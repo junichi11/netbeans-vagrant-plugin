@@ -152,10 +152,10 @@ public final class Vagrant {
             .frontWindowOnError(true)
             .inputVisible(true)
             .showProgress(true);
-    private ChangeSupport changeSupport = new ChangeSupport(this);
+    private final ChangeSupport changeSupport = new ChangeSupport(this);
     private Project project;
     private boolean noInfo = false;
-    private List<String> fullCommand = new ArrayList<String>();
+    private final List<String> fullCommand = new ArrayList<String>();
 
     public Vagrant(String path) {
         this.path = path;
@@ -517,7 +517,6 @@ public final class Vagrant {
             if (isStart) {
                 String status = getStatus(line);
                 statuses.add(status);
-                continue;
             }
         }
 
@@ -620,10 +619,7 @@ public final class Vagrant {
             }
             return false;
         }
-        if (StringUtils.isEmpty(version) || !version.toLowerCase().contains("vagrant")) { // NOI18N
-            return false;
-        }
-        return true;
+        return !StringUtils.isEmpty(version) && version.toLowerCase().contains("vagrant");
     }
 
     /**
@@ -829,7 +825,7 @@ public final class Vagrant {
     //~ Inner classes
     private static class VagrantLineProcessor implements LineProcessor {
 
-        private ArrayList<String> list = new ArrayList<String>();
+        private final ArrayList<String> list = new ArrayList<String>();
 
         @Override
         public void processLine(String line) {

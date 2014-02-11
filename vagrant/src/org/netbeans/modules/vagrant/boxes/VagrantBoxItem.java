@@ -47,10 +47,10 @@ package org.netbeans.modules.vagrant.boxes;
  */
 public final class VagrantBoxItem {
 
-    private String name;
-    private String provider;
-    private String url;
-    private String size;
+    private final String name;
+    private final String provider;
+    private final String url;
+    private final String size;
 
     public VagrantBoxItem(String name, String provider, String url, String size) {
         this.name = name;

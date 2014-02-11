@@ -73,7 +73,7 @@ public class RunCommandPanel extends JPanel {
 
     private static final long serialVersionUID = -4564497771171566386L;
     private List<String> commands;
-    private Map<String, String> helpMap = new HashMap<String, String>();
+    private final Map<String, String> helpMap = new HashMap<String, String>();
     private static final RunCommandPanel INSTANCE = new RunCommandPanel();
     private Project project;
     private static final Logger LOGGER = Logger.getLogger(RunCommandPanel.class.getName());

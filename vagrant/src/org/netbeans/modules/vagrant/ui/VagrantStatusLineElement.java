@@ -92,8 +92,8 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
     private Lookup.Result<DataObject> result = null;
     private final JLabel statusLabel = new JLabel(""); // NOI18N
     private Project project;
-    private Map<Project, String> statusCache = new HashMap<Project, String>();
-    private Set<Project> changedProjects = new HashSet<Project>();
+    private final Map<Project, String> statusCache = new HashMap<Project, String>();
+    private final Set<Project> changedProjects = new HashSet<Project>();
     private boolean isShowStatus;
 
     public VagrantStatusLineElement() {
@@ -350,7 +350,7 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
     //~ inner class
     private class DefaultMouseAdapter extends MouseAdapter {
 
-        private JPopupMenu popup = new JPopupMenu();
+        private final JPopupMenu popup = new JPopupMenu();
 
         public DefaultMouseAdapter() {
             for (VagrantAction action : VagrantActionMenu.ALL_ACTIONS) {

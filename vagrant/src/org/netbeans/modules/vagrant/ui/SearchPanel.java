@@ -162,7 +162,7 @@ public final class SearchPanel extends JPanel {
         foundItemsList.setEnabled(true);
         foundItemsList.setListData(foundItems.toArray(new String[foundItems.size()]));
         // In an attempt to hide the progress bar and label, but force the occupy the same space.
-        String message = null;
+        String message;
         if (foundItems.isEmpty()) {
             message = support.getNoItemsFound();
         } else {

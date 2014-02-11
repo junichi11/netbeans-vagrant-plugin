@@ -78,8 +78,8 @@ public final class AddPluginsPanel extends JPanel {
     private static final int MAX_RELOAD_COUNT = 5;
     private static final AddPluginsPanel INSTANCE = new AddPluginsPanel();
     private List<VagrantPluginItem> plugins;
-    private List<VagrantPluginItem> filteredPlugins = new LinkedList<VagrantPluginItem>();
-    private Set<String> installedPlugins = new HashSet<String>();
+    private final List<VagrantPluginItem> filteredPlugins = new LinkedList<VagrantPluginItem>();
+    private final Set<String> installedPlugins = new HashSet<String>();
     private int reloadCount = 0;
 
     /**

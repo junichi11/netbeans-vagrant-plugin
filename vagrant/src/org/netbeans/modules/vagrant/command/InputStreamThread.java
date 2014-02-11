@@ -58,7 +58,7 @@ import org.openide.windows.OutputWriter;
 public class InputStreamThread extends Thread {
 
     private final BufferedReader bufferedReader;
-    private List<String> result = new ArrayList<String>();
+    private final List<String> result = new ArrayList<String>();
     private final InputOutput inputOutput;
 
     InputStreamThread(InputStream inputStream, InputOutput inputOutput) {

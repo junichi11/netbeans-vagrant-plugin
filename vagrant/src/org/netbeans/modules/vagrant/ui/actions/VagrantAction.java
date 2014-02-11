@@ -57,7 +57,7 @@ import org.netbeans.modules.vagrant.utils.UiUtils;
 public abstract class VagrantAction extends AbstractAction {
 
     private static final long serialVersionUID = -4974562366882013984L;
-    private String name;
+    private final String name;
 
     public VagrantAction(String name) {
         super(name);

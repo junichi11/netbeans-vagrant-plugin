@@ -47,9 +47,9 @@ package org.netbeans.modules.vagrant.plugins;
  */
 public final class VagrantPluginItem {
 
-    private String name;
-    private String url;
-    private String category;
+    private final String name;
+    private final String url;
+    private final String category;
 
     public VagrantPluginItem(String name, String url, String category) {
         this.name = name;
