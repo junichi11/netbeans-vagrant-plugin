@@ -41,6 +41,7 @@
  */
 package org.netbeans.modules.vagrant.ui.actions;
 
+import javax.swing.SwingUtilities;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.utils.UiUtils;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
@@ -61,6 +62,12 @@ public class VagrantOpenOptionsAction extends VagrantAction {
 
     @Override
     public void actionPerformed(Project project) {
-        UiUtils.showOptions();
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                UiUtils.showOptions();
+            }
+        });
     }
 }
