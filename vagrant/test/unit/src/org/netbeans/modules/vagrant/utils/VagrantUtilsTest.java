@@ -43,7 +43,7 @@ package org.netbeans.modules.vagrant.utils;
 
 import java.io.IOException;
 import static junit.framework.Assert.assertEquals;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
 import org.junit.Test;
 import org.netbeans.junit.NbTestCase;
 import org.openide.filesystems.FileObject;
@@ -163,24 +163,33 @@ public class VagrantUtilsTest extends NbTestCase {
 
     /**
      * Test of hasVagrantfile method, of class VagrantUtils.
+     *
+     * @throws java.io.IOException
      */
     @Test
     public void testHasVagrantfile() throws IOException {
         FileSystem fileSystem = FileUtil.createMemoryFileSystem();
         FileObject root = fileSystem.getRoot();
         FileObject hasParent = root.createFolder("hasVagrantfile");
+        // #7 casing doesn't matter
+        FileObject hasLowercaseParent = root.createFolder("hasLowercaseVagrantfile");
         FileObject vagrantfile = hasParent.createData("Vagrantfile");
+        FileObject lowercaseVagrantfile = hasLowercaseParent.createData("vagrantfile");
         FileObject hasNotParent = root.createFolder("hasNotVagrantfile");
         FileObject hasFolderParent = root.createFolder("hasFolderVagrantfile");
         hasFolderParent.createFolder("Vagrantfile");
 
         assertTrue(VagrantUtils.hasVagrantfile(hasParent));
+        assertTrue(VagrantUtils.hasVagrantfile(hasLowercaseParent));
+
         assertFalse(VagrantUtils.hasVagrantfile(hasNotParent));
         assertFalse(VagrantUtils.hasVagrantfile(hasFolderParent));
+        assertFalse(VagrantUtils.hasVagrantfile(vagrantfile));
         assertFalse(VagrantUtils.hasVagrantfile(vagrantfile));
 
         hasParent.delete();
         hasNotParent.delete();
         hasFolderParent.delete();
+        hasLowercaseParent.delete();
     }
 }

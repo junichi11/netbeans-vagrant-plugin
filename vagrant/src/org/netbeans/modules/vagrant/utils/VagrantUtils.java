@@ -163,6 +163,11 @@ public class VagrantUtils {
             return false;
         }
         FileObject vagrantfile = fileObject.getFileObject(VAGRANTFILE);
+        // #7 casing doesn't matter
+        if (vagrantfile == null) {
+            vagrantfile = fileObject.getFileObject(VAGRANTFILE.toLowerCase());
+        }
+
         if (vagrantfile == null) {
             return false;
         }

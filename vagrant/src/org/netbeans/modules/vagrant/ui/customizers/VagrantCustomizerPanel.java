@@ -50,6 +50,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 import org.netbeans.modules.vagrant.ui.options.GeneralPanel;
 import org.netbeans.modules.vagrant.utils.StringUtils;
+import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.filesystems.FileChooserBuilder;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.ChangeSupport;
@@ -111,8 +112,9 @@ public final class VagrantCustomizerPanel extends JPanel {
             return;
         }
 
-        File vagrantfile = new File(file, "Vagrantfile"); // NOI18N
-        if (!vagrantfile.exists()) {
+        File vagrantfile = new File(file, VagrantUtils.VAGRANTFILE);
+        File lowercaseVagrantfile = new File(file, VagrantUtils.VAGRANTFILE.toLowerCase());
+        if (!vagrantfile.exists() && !lowercaseVagrantfile.exists()) {
             errorMessage = Bundle.VagrantCustomizerPanel_notFound_vagrantfile();
             return;
         }
