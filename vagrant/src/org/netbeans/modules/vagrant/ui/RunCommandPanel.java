@@ -109,12 +109,20 @@ public class RunCommandPanel extends JPanel {
                 try {
                     // get command list
                     Vagrant vagrant = Vagrant.getDefault();
-                    commands = vagrant.getCommandList();
+                    commands = vagrant.getCommandListLines();
                     int i = 0;
 
                     // set command list
                     for (String command : commands) {
-                        model.add(i, String.format("<html><b>%s</b></html>", command)); // NOI18N
+                        // #8 command may have description
+                        String description = ""; // NOI18N
+                        int indexOf = command.indexOf(" "); // NOI18N
+                        if (indexOf != -1) {
+                            description = command.substring(indexOf);
+                            command = command.substring(0, indexOf).trim();
+                            commands.set(i, command);
+                        }
+                        model.add(i, String.format("<html><b>%s</b>%s</html>", command, description)); // NOI18N
                         i++;
                     }
                 } catch (InvalidVagrantExecutableException ex) {
@@ -195,7 +203,7 @@ public class RunCommandPanel extends JPanel {
         ArrayList<String> subcommands = new ArrayList<String>();
         subcommands.addAll(Arrays.asList(split));
         Vagrant vagrant = Vagrant.getDefault();
-        List<String> subcommandList = vagrant.getSubcommandList(subcommands);
+        List<String> subcommandList = vagrant.getSubcommandListLines(subcommands);
         if (!subcommandList.isEmpty()) {
             DefaultListModel<String> model = getListModel();
             for (String subcommand : subcommandList) {

@@ -386,7 +386,7 @@ public final class Vagrant {
      *
      * @return command list
      */
-    public List<String> getCommandList() throws InvalidVagrantExecutableException {
+    public List<String> getCommandListLines() throws InvalidVagrantExecutableException {
         final VagrantLineProcessor lineProcessor = new VagrantLineProcessor();
         command = HELP_PARAM;
         descriptor = getSilentDescriptor()
@@ -418,7 +418,7 @@ public final class Vagrant {
         return commands;
     }
 
-    public List<String> getSubcommandList(List<String> subcommand) throws InvalidVagrantExecutableException {
+    public List<String> getSubcommandListLines(List<String> subcommand) throws InvalidVagrantExecutableException {
         if (subcommand == null || subcommand.isEmpty()) {
             return Collections.emptyList();
         }
