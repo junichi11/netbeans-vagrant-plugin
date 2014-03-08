@@ -10,8 +10,8 @@ Please check the following site:
 
 ## Requirements
 
-- NetBeans 7.3 or newer
-- Vagrant 1.3.1 or newer
+- NetBeans 7.4 or newer
+- Vagrant 1.4.3 or newer
 
 ## Install
 
@@ -63,6 +63,7 @@ Tools > Options > Miscellaneous > Vagrant
 - status
 - ssh-config
 - destroy
+- provision
 - box add
 - plugin install
 - run command
