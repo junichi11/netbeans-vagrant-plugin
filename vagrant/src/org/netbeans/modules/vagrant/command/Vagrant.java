@@ -124,6 +124,7 @@ public final class Vagrant {
     public static final String HELP_COMMAND = "help"; // NOI18N
     public static final String INIT_COMMAND = "init"; // NOI18N
     public static final String PLUGIN_COMMAND = "plugin"; // NOI18N
+    public static final String PROVISION_COMMAND = "provision"; // NOI18N
     public static final String RELOAD_COMMAND = "reload"; // NOI18N
     public static final String RESUME_COMMAND = "resume"; // NOI18N
     public static final String SSH_COMMAND = "ssh"; // NOI18N
@@ -318,6 +319,11 @@ public final class Vagrant {
     public Future<Integer> destroy(Project project) {
         // require a TTY
         return runCommand(project, DESTROY_COMMAND, Bundle.Vagrant_run_destroy(), Collections.singletonList(FORCE_PARAM));
+    }
+
+    @NbBundle.Messages("Vagrant.run.provision=Vagrant (provision)")
+    public Future<Integer> provisiton(Project project) {
+        return runCommand(project, PROVISION_COMMAND, Bundle.Vagrant_run_provision());
     }
 
     @NbBundle.Messages("Vagrant.run.version=Vagrant (--version)")

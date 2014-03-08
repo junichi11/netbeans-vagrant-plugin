@@ -79,6 +79,7 @@ public final class VagrantActionMenu extends AbstractAction implements Presenter
             new VagrantStatusAction(),
             new VagrantInitAction(),
             new VagrantSshConfigAction(),
+            new VagrantProvisitonAction(),
             new VagrantBoxAddAction(),
             new VagrantPluginInstallAction(),
             new VagrantRunCommandAction(),
