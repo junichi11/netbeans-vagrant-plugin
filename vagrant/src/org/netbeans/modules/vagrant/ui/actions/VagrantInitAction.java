@@ -90,8 +90,6 @@ public final class VagrantInitAction extends VagrantAction implements ChangeList
         VagrantInitPanel initPanel = getPanel();
         initPanel.setVagrantRoot(""); // NOI18N
 
-        // add listener
-        initPanel.addChangeListener(this);
         String error = ""; // NOI18N
         try {
             // open panel
@@ -214,6 +212,8 @@ public final class VagrantInitAction extends VagrantAction implements ChangeList
     private VagrantInitPanel getPanel() {
         if (panel == null) {
             panel = new VagrantInitPanel();
+            // add listener
+            panel.addChangeListener(this);
         }
         return panel;
     }
