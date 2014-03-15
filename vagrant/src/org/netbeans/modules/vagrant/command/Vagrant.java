@@ -61,6 +61,8 @@ import org.netbeans.api.extexecution.input.InputProcessor;
 import org.netbeans.api.extexecution.input.InputProcessors;
 import org.netbeans.api.extexecution.input.LineProcessor;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.VagrantVersion;
+import org.netbeans.modules.vagrant.Versionable;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
 import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 import org.netbeans.modules.vagrant.ui.VagrantStatusLineElement;
@@ -120,6 +122,7 @@ public final class Vagrant {
     // commands
     public static final String BOX_COMMAND = "box"; // NOI18N
     public static final String DESTROY_COMMAND = "destroy"; // NOI18N
+    public static final String LIST_COMMANDS_COMMAND = "list-commands"; // NOI18N v1.5.0+
     public static final String HALT_COMMAND = "halt"; // NOI18N
     public static final String HELP_COMMAND = "help"; // NOI18N
     public static final String INIT_COMMAND = "init"; // NOI18N
@@ -157,6 +160,7 @@ public final class Vagrant {
     private Project project;
     private boolean noInfo = false;
     private final List<String> fullCommand = new ArrayList<String>();
+    private Versionable version;
 
     public Vagrant(String path) {
         this.path = path;
@@ -332,13 +336,30 @@ public final class Vagrant {
     }
 
     /**
+     * Get vagrant version.
+     *
+     * @return version
+     */
+    public Versionable getVersion() {
+        if (version == null) {
+            try {
+                String versionNumber = getVersionNumber();
+                version = new VagrantVersion(versionNumber);
+            } catch (InvalidVagrantExecutableException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+        return version;
+    }
+
+    /**
      * Get Vagrant version.
      *
      * @return Vagrant version
      * @throws InvalidVagrantExecutableException
      */
     @NbBundle.Messages("Vagrant.version.error=Not Vagrant script.")
-    public String getVersion() throws InvalidVagrantExecutableException {
+    public String getVersionNumber() throws InvalidVagrantExecutableException {
         final VagrantLineProcessor lineProcessor = new VagrantLineProcessor();
         descriptor = getSilentDescriptor()
                 .outProcessorFactory(getOutputProcessorFactory(lineProcessor));
@@ -393,26 +414,45 @@ public final class Vagrant {
      * @return command list
      */
     public List<String> getCommandListLines() throws InvalidVagrantExecutableException {
+        Versionable v = getVersion();
+        boolean isListCommands = false;
+        if (v == null) {
+            return Collections.emptyList();
+        }
+        if (v.getMajor() == 1 && v.getMinor() <= 4) {
+            command = HELP_PARAM;
+        } else {
+            command = LIST_COMMANDS_COMMAND;
+            isListCommands = true;
+        }
         final VagrantLineProcessor lineProcessor = new VagrantLineProcessor();
-        command = HELP_PARAM;
         descriptor = getSilentDescriptor()
                 .outProcessorFactory(getOutputProcessorFactory(lineProcessor));
         Future<Integer> result = ExecutionService.newService(getProcessBuilder(), descriptor, "").run(); // NOI18N
         getResult(result);
 
-        return getCommands(lineProcessor.getList());
+        return getCommands(lineProcessor.getList(), isListCommands);
     }
 
     private List<String> getCommands(List<String> lines) {
-        boolean isSubcommands = false;
+        return getCommands(lines, false);
+    }
+
+    private List<String> getCommands(List<String> lines, boolean isListCommands) {
+        boolean isStartPosition = false;
         List<String> commands = new LinkedList<String>();
         for (String line : lines) {
-            if (line.toLowerCase().contains("subcommands")) { // NOI18N
-                isSubcommands = true;
+            if (line.toLowerCase().matches("\\A.*(subcommands|common commands).*\\z")) { // NOI18N
+                isStartPosition = true;
                 continue;
             }
 
-            if (!isSubcommands) {
+            if (line.isEmpty() && isListCommands) {
+                isStartPosition = true;
+                continue;
+            }
+
+            if (!isStartPosition) {
                 continue;
             }
 
@@ -618,7 +658,7 @@ public final class Vagrant {
                 .noInfo(true);
         String version;
         try {
-            version = vagrant.getVersion();
+            version = vagrant.getVersionNumber();
         } catch (InvalidVagrantExecutableException ex) {
             if (warn) {
                 VagrantUtils.showWarnigDialog(ex.getMessage());

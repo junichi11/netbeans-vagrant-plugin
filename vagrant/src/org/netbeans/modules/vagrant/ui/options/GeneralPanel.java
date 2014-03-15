@@ -103,7 +103,7 @@ public final class GeneralPanel extends VagrantCategoryPanel {
         }
         try {
             Vagrant vagrant = Vagrant.getDefault();
-            String version = vagrant.getVersion();
+            String version = vagrant.getVersionNumber();
             if (!StringUtils.isEmpty(version)) {
                 setVersion(version);
                 versionLabel.setVisible(true);
