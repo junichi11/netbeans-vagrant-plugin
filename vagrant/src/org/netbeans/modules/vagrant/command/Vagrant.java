@@ -41,6 +41,9 @@
  */
 package org.netbeans.modules.vagrant.command;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -924,14 +927,24 @@ public final class Vagrant {
         public void processLine(String line) {
             Matcher matcher = URL_PATTERN.matcher(line);
             if (matcher.find()) {
-                String group = matcher.group("http"); // NOI18N
-                if (group != null) {
-                    try {
-                        URL url = new URL(group);
+                String vagrantshareUrl = matcher.group("http"); // NOI18N
+                if (vagrantshareUrl == null) {
+                    return;
+                }
+                try {
+                    URL url = new URL(vagrantshareUrl);
+                    VagrantOptions options = VagrantOptions.getInstance();
+                    if (options.isShareOpenUrl()) {
                         HtmlBrowser.URLDisplayer.getDefault().showURL(url);
-                    } catch (MalformedURLException ex) {
-                        Exceptions.printStackTrace(ex);
                     }
+
+                    if (options.isShareCopyUrl()) {
+                        Toolkit toolkit = Toolkit.getDefaultToolkit();
+                        Clipboard clipboard = toolkit.getSystemClipboard();
+                        clipboard.setContents(new StringSelection(vagrantshareUrl), null);
+                    }
+                } catch (MalformedURLException ex) {
+                    Exceptions.printStackTrace(ex);
                 }
             }
         }
