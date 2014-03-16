@@ -43,6 +43,8 @@ package org.netbeans.modules.vagrant.command;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -53,6 +55,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.extexecution.ExecutionDescriptor;
 import org.netbeans.api.extexecution.ExecutionService;
@@ -71,6 +75,7 @@ import org.netbeans.modules.vagrant.utils.UiUtils;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.awt.HtmlBrowser;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.ChangeSupport;
@@ -122,14 +127,15 @@ public final class Vagrant {
     // commands
     public static final String BOX_COMMAND = "box"; // NOI18N
     public static final String DESTROY_COMMAND = "destroy"; // NOI18N
-    public static final String LIST_COMMANDS_COMMAND = "list-commands"; // NOI18N v1.5.0+
     public static final String HALT_COMMAND = "halt"; // NOI18N
     public static final String HELP_COMMAND = "help"; // NOI18N
     public static final String INIT_COMMAND = "init"; // NOI18N
+    public static final String LIST_COMMANDS_COMMAND = "list-commands"; // NOI18N v1.5.0+
     public static final String PLUGIN_COMMAND = "plugin"; // NOI18N
     public static final String PROVISION_COMMAND = "provision"; // NOI18N
     public static final String RELOAD_COMMAND = "reload"; // NOI18N
     public static final String RESUME_COMMAND = "resume"; // NOI18N
+    public static final String SHARE_COMMAND = "share"; // NOI18N v1.5.0+
     public static final String SSH_COMMAND = "ssh"; // NOI18N
     public static final String SSH_CONFIG_COMMAND = "ssh-config"; // NOI18N
     public static final String STATUS_COMMAND = "status"; // NOI18N
@@ -302,6 +308,11 @@ public final class Vagrant {
     @NbBundle.Messages("Vagrant.run.resume=Vagrant (resume)")
     public Future<Integer> resume(Project project) {
         return runCommand(project, RESUME_COMMAND, Bundle.Vagrant_run_resume());
+    }
+
+    @NbBundle.Messages("Vagrant.run.share=Vagrant (share)")
+    public Future<Integer> share(Project project) {
+        return runCommand(project, SHARE_COMMAND, Bundle.Vagrant_run_share());
     }
 
     @NbBundle.Messages("Vagrant.run.status=Vagrant (status)")
@@ -845,6 +856,12 @@ public final class Vagrant {
         return new ExecutionDescriptor.InputProcessorFactory() {
             @Override
             public InputProcessor newInputProcessor(InputProcessor defaultProcessor) {
+                if (SHARE_COMMAND.equals(command)) {
+                    return InputProcessors.proxy(
+                            new InfoInputProcessor(defaultProcessor, fullCommand),
+                            defaultProcessor,
+                            InputProcessors.ansiStripping(InputProcessors.bridge(new VagrantShareLineProcessor())));
+                }
                 return InputProcessors.proxy(new InfoInputProcessor(defaultProcessor, fullCommand), defaultProcessor);
             }
         };
@@ -897,6 +914,36 @@ public final class Vagrant {
             }
             return sb.toString().trim();
         }
+    }
+
+    private static class VagrantShareLineProcessor implements LineProcessor {
+
+        private static final Pattern URL_PATTERN = Pattern.compile("\\A.+(?<http>http://.+vagrantshare.com).*\\z"); // NOI18N
+
+        @Override
+        public void processLine(String line) {
+            Matcher matcher = URL_PATTERN.matcher(line);
+            if (matcher.find()) {
+                String group = matcher.group("http"); // NOI18N
+                if (group != null) {
+                    try {
+                        URL url = new URL(group);
+                        HtmlBrowser.URLDisplayer.getDefault().showURL(url);
+                    } catch (MalformedURLException ex) {
+                        Exceptions.printStackTrace(ex);
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void reset() {
+        }
+
+        @Override
+        public void close() {
+        }
+
     }
 
     /**
