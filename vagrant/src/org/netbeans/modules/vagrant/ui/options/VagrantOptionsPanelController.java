@@ -111,14 +111,17 @@ public final class VagrantOptionsPanelController extends OptionsPanelController 
     private VagrantPanel getPanel() {
         if (panel == null) {
             panel = new VagrantPanel(this);
+            // TODO improvement get category panels : use Lookups
             GeneralPanel generalPanel = new GeneralPanel();
             generalPanel.addChangeListener(panel);
             BoxesPanel boxesPanel = new BoxesPanel();
             PluginsPanel pluginsPanel = new PluginsPanel();
+            CommandsPanel commandsPanel = new CommandsPanel();
             // add panels
             panel.addCategoryPanel(generalPanel.getCategoryName(), generalPanel);
             panel.addCategoryPanel(boxesPanel.getCategoryName(), boxesPanel);
             panel.addCategoryPanel(pluginsPanel.getCategoryName(), pluginsPanel);
+            panel.addCategoryPanel(commandsPanel.getCategoryName(), commandsPanel);
             // select
             panel.addCategoryPanel(generalPanel.getCategoryName(), generalPanel);
         }

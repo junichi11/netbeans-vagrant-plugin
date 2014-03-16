@@ -19,16 +19,11 @@
           <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" attributes="0">
-                      <Component id="categoriesLabel" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="32767" attributes="0"/>
-                  </Group>
-                  <Group type="102" attributes="0">
-                      <Component id="categoryScrollPane" min="-2" pref="130" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="categoryPanel" pref="412" max="32767" attributes="0"/>
-                  </Group>
+                  <Component id="categoriesLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="categoryScrollPane" alignment="0" min="-2" pref="130" max="-2" attributes="0"/>
               </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="categoryPanel" pref="412" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -38,14 +33,10 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="categoriesLabel" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" attributes="0">
-                      <Component id="categoryScrollPane" pref="252" max="32767" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                  </Group>
-                  <Component id="categoryPanel" max="32767" attributes="0"/>
-              </Group>
+              <Component id="categoryScrollPane" pref="252" max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
+          <Component id="categoryPanel" alignment="0" max="32767" attributes="0"/>
       </Group>
     </DimensionLayout>
   </Layout>
