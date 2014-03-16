@@ -91,7 +91,7 @@ public class CommandsPanel extends VagrantCategoryPanel {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(shareCopyUrlCheckBox)
                             .addComponent(shareOpenUrlCheckBox))))
-                .addContainerGap(58, Short.MAX_VALUE))
+                .addContainerGap(32, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
