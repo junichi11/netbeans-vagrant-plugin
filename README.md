@@ -11,7 +11,7 @@ Please check the following site:
 ## Requirements
 
 - NetBeans 7.4 or newer
-- Vagrant 1.4.3 or newer
+- Vagrant 1.5.0 or newer
 
 ## Install
 
@@ -61,6 +61,7 @@ Tools > Options > Miscellaneous > Vagrant
 - halt
 - init
 - status
+- share
 - ssh-config
 - destroy
 - provision
