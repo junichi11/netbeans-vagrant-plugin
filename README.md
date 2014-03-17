@@ -141,6 +141,9 @@ Probably, the following message will be shown *"sudo: no tty present and no askp
 If passwd is visible, we can avoid this. **But this is not good.**
 So, please run vagrant command with terminal if this message is shown.
 
+## Syntax Highlight for Vagrantfile
+
+Need Ruby plugin (http://plugins.netbeans.org/plugin/38549/ruby-and-rails)
 
 ## Issues
 
