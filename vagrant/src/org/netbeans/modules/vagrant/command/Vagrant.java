@@ -54,6 +54,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeListener;
+import org.netbeans.api.annotations.common.CheckForNull;
 import org.netbeans.api.extexecution.ExecutionDescriptor;
 import org.netbeans.api.extexecution.ExecutionService;
 import org.netbeans.api.extexecution.ExternalProcessBuilder;
@@ -482,21 +483,7 @@ public final class Vagrant {
         if (project == null) {
             return statuses;
         }
-
-        // set working directory
-        String vagrantPath = VagrantPreferences.getVagrantPath(project);
-        if (StringUtils.isEmpty(vagrantPath)) {
-            workDir(FileUtil.toFile(project.getProjectDirectory()));
-        } else {
-            File vagrantRoot = new File(vagrantPath);
-            if (vagrantRoot.exists()) {
-                workDir(vagrantRoot);
-            } else {
-                VagrantPreferences.setVagrantPath(project, ""); // NOI18N
-                LOGGER.log(Level.WARNING, "Vagrant root path is invalid. clear the path settings.");
-                workDir(FileUtil.toFile(project.getProjectDirectory()));
-            }
-        }
+        setWorkDir(project);
 
         VagrantLineProcessor lineProcessor = new VagrantLineProcessor();
         setCommand(STATUS_COMMAND);
@@ -529,6 +516,23 @@ public final class Vagrant {
         return statuses;
     }
 
+    private void setWorkDir(Project project) {
+        // set working directory
+        String vagrantPath = VagrantPreferences.getVagrantPath(project);
+        if (StringUtils.isEmpty(vagrantPath)) {
+            workDir(FileUtil.toFile(project.getProjectDirectory()));
+        } else {
+            File vagrantRoot = new File(vagrantPath);
+            if (vagrantRoot.exists()) {
+                workDir(vagrantRoot);
+            } else {
+                VagrantPreferences.setVagrantPath(project, ""); // NOI18N
+                LOGGER.log(Level.WARNING, "Vagrant root path is invalid. clear the path settings.");
+                workDir(FileUtil.toFile(project.getProjectDirectory()));
+            }
+        }
+    }
+
     /**
      * Get formatted status. (e.g. default: not created)
      *
@@ -550,6 +554,41 @@ public final class Vagrant {
             return sb.toString();
         }
         return status;
+    }
+
+    @CheckForNull
+    public SshInfo getSshInfo(Project project) throws InvalidVagrantExecutableException {
+        if (project == null) {
+            return null;
+        }
+        setWorkDir(project);
+        VagrantLineProcessor lineProcessor = new VagrantLineProcessor();
+        setCommand(SSH_CONFIG_COMMAND);
+        descriptor = getSilentDescriptor()
+                .outProcessorFactory(getOutputProcessorFactory(lineProcessor));
+        Future<Integer> result = ExecutionService.newService(getProcessBuilder(), descriptor, "").run(); // NOI18N
+        getResult(result);
+        String hostName = ""; // NOI18N
+        String user = ""; // NOI18N
+        int port = -1;
+        for (String line : lineProcessor.getList()) {
+            line = line.trim().replace(" +", " "); // NOI18N
+            if (line.startsWith("HostName ")) { // NOI18N
+                hostName = line.replace("HostName ", ""); // NOI18N
+            }
+
+            if (line.startsWith("User ")) { // NOI18N
+                user = line.replace("User ", ""); // NOI18N
+            }
+
+            if (line.startsWith("Port ")) { // NOI18N
+                port = Integer.parseInt(line.replace("Port ", "")); // NOI18N
+            }
+        }
+        if (!StringUtils.isEmpty(hostName) && !StringUtils.isEmpty(user) && port != -1) {
+            return new SshInfo(hostName, user, port);
+        }
+        return null;
     }
 
     /**
@@ -948,4 +987,5 @@ public final class Vagrant {
             return processBuilder.start();
         }
     }
+
 }
