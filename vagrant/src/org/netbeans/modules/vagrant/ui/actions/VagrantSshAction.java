@@ -51,6 +51,7 @@ import org.netbeans.modules.nativeexecution.api.ExecutionEnvironmentFactory;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.SshInfo;
 import org.netbeans.modules.vagrant.command.Vagrant;
+import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.util.NbBundle.Messages;
 
 @Messages("CTL_VagrantSshAction=Vagrant ssh")
@@ -60,7 +61,7 @@ public final class VagrantSshAction extends VagrantAction {
     private static final Logger LOGGER = Logger.getLogger(VagrantSshAction.class.getName());
 
     public VagrantSshAction() {
-        super(Bundle.CTL_VagrantSshAction());
+        super(Bundle.CTL_VagrantSshAction(), VagrantUtils.getIcon(VagrantUtils.SSH_ICON_16));
     }
 
     @Override
