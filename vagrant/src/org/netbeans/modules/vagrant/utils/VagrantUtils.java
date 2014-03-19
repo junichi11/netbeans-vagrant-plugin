@@ -84,13 +84,13 @@ public class VagrantUtils {
     }
 
     /**
-     * Get script extension. Return .bat if OS is Windows, otherwise return .sh.
+     * Get script extension. Return .exe if OS is Windows, otherwise return .sh.
      *
      * @return extension
      */
     public static String getScriptExt() {
         if (Utilities.isWindows()) {
-            return ".bat"; // NOI18N
+            return ".exe"; // NOI18N
         }
         return ".sh"; // NOI18N
     }
