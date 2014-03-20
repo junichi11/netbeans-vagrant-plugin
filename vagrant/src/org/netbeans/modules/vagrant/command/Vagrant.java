@@ -41,8 +41,13 @@
  */
 package org.netbeans.modules.vagrant.command;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -53,7 +58,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.event.ChangeListener;
+import org.netbeans.api.annotations.common.CheckForNull;
 import org.netbeans.api.extexecution.ExecutionDescriptor;
 import org.netbeans.api.extexecution.ExecutionService;
 import org.netbeans.api.extexecution.ExternalProcessBuilder;
@@ -61,6 +69,8 @@ import org.netbeans.api.extexecution.input.InputProcessor;
 import org.netbeans.api.extexecution.input.InputProcessors;
 import org.netbeans.api.extexecution.input.LineProcessor;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.VagrantVersion;
+import org.netbeans.modules.vagrant.Versionable;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
 import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 import org.netbeans.modules.vagrant.ui.VagrantStatusLineElement;
@@ -69,6 +79,7 @@ import org.netbeans.modules.vagrant.utils.UiUtils;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.awt.HtmlBrowser;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.ChangeSupport;
@@ -123,10 +134,12 @@ public final class Vagrant {
     public static final String HALT_COMMAND = "halt"; // NOI18N
     public static final String HELP_COMMAND = "help"; // NOI18N
     public static final String INIT_COMMAND = "init"; // NOI18N
+    public static final String LIST_COMMANDS_COMMAND = "list-commands"; // NOI18N v1.5.0+
     public static final String PLUGIN_COMMAND = "plugin"; // NOI18N
     public static final String PROVISION_COMMAND = "provision"; // NOI18N
     public static final String RELOAD_COMMAND = "reload"; // NOI18N
     public static final String RESUME_COMMAND = "resume"; // NOI18N
+    public static final String SHARE_COMMAND = "share"; // NOI18N v1.5.0+
     public static final String SSH_COMMAND = "ssh"; // NOI18N
     public static final String SSH_CONFIG_COMMAND = "ssh-config"; // NOI18N
     public static final String STATUS_COMMAND = "status"; // NOI18N
@@ -157,6 +170,7 @@ public final class Vagrant {
     private Project project;
     private boolean noInfo = false;
     private final List<String> fullCommand = new ArrayList<String>();
+    private Versionable version;
 
     public Vagrant(String path) {
         this.path = path;
@@ -300,6 +314,11 @@ public final class Vagrant {
         return runCommand(project, RESUME_COMMAND, Bundle.Vagrant_run_resume());
     }
 
+    @NbBundle.Messages("Vagrant.run.share=Vagrant (share)")
+    public Future<Integer> share(Project project) {
+        return runCommand(project, SHARE_COMMAND, Bundle.Vagrant_run_share());
+    }
+
     @NbBundle.Messages("Vagrant.run.status=Vagrant (status)")
     public Future<Integer> status(Project project) {
         return runCommand(project, STATUS_COMMAND, Bundle.Vagrant_run_status());
@@ -332,13 +351,30 @@ public final class Vagrant {
     }
 
     /**
+     * Get vagrant version.
+     *
+     * @return version
+     */
+    public Versionable getVersion() {
+        if (version == null) {
+            try {
+                String versionNumber = getVersionNumber();
+                version = new VagrantVersion(versionNumber);
+            } catch (InvalidVagrantExecutableException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+        return version;
+    }
+
+    /**
      * Get Vagrant version.
      *
      * @return Vagrant version
      * @throws InvalidVagrantExecutableException
      */
     @NbBundle.Messages("Vagrant.version.error=Not Vagrant script.")
-    public String getVersion() throws InvalidVagrantExecutableException {
+    public String getVersionNumber() throws InvalidVagrantExecutableException {
         final VagrantLineProcessor lineProcessor = new VagrantLineProcessor();
         descriptor = getSilentDescriptor()
                 .outProcessorFactory(getOutputProcessorFactory(lineProcessor));
@@ -393,26 +429,45 @@ public final class Vagrant {
      * @return command list
      */
     public List<String> getCommandListLines() throws InvalidVagrantExecutableException {
+        Versionable v = getVersion();
+        boolean isListCommands = false;
+        if (v == null) {
+            return Collections.emptyList();
+        }
+        if (v.getMajor() == 1 && v.getMinor() <= 4) {
+            command = HELP_PARAM;
+        } else {
+            command = LIST_COMMANDS_COMMAND;
+            isListCommands = true;
+        }
         final VagrantLineProcessor lineProcessor = new VagrantLineProcessor();
-        command = HELP_PARAM;
         descriptor = getSilentDescriptor()
                 .outProcessorFactory(getOutputProcessorFactory(lineProcessor));
         Future<Integer> result = ExecutionService.newService(getProcessBuilder(), descriptor, "").run(); // NOI18N
         getResult(result);
 
-        return getCommands(lineProcessor.getList());
+        return getCommands(lineProcessor.getList(), isListCommands);
     }
 
     private List<String> getCommands(List<String> lines) {
-        boolean isSubcommands = false;
+        return getCommands(lines, false);
+    }
+
+    private List<String> getCommands(List<String> lines, boolean isListCommands) {
+        boolean isStartPosition = false;
         List<String> commands = new LinkedList<String>();
         for (String line : lines) {
-            if (line.toLowerCase().contains("subcommands")) { // NOI18N
-                isSubcommands = true;
+            if (line.toLowerCase().matches("\\A.*(subcommands|common commands).*\\z")) { // NOI18N
+                isStartPosition = true;
                 continue;
             }
 
-            if (!isSubcommands) {
+            if (line.isEmpty() && isListCommands) {
+                isStartPosition = true;
+                continue;
+            }
+
+            if (!isStartPosition) {
                 continue;
             }
 
@@ -482,21 +537,7 @@ public final class Vagrant {
         if (project == null) {
             return statuses;
         }
-
-        // set working directory
-        String vagrantPath = VagrantPreferences.getVagrantPath(project);
-        if (StringUtils.isEmpty(vagrantPath)) {
-            workDir(FileUtil.toFile(project.getProjectDirectory()));
-        } else {
-            File vagrantRoot = new File(vagrantPath);
-            if (vagrantRoot.exists()) {
-                workDir(vagrantRoot);
-            } else {
-                VagrantPreferences.setVagrantPath(project, ""); // NOI18N
-                LOGGER.log(Level.WARNING, "Vagrant root path is invalid. clear the path settings.");
-                workDir(FileUtil.toFile(project.getProjectDirectory()));
-            }
-        }
+        setWorkDir(project);
 
         VagrantLineProcessor lineProcessor = new VagrantLineProcessor();
         setCommand(STATUS_COMMAND);
@@ -529,6 +570,23 @@ public final class Vagrant {
         return statuses;
     }
 
+    private void setWorkDir(Project project) {
+        // set working directory
+        String vagrantPath = VagrantPreferences.getVagrantPath(project);
+        if (StringUtils.isEmpty(vagrantPath)) {
+            workDir(FileUtil.toFile(project.getProjectDirectory()));
+        } else {
+            File vagrantRoot = new File(vagrantPath);
+            if (vagrantRoot.exists()) {
+                workDir(vagrantRoot);
+            } else {
+                VagrantPreferences.setVagrantPath(project, ""); // NOI18N
+                LOGGER.log(Level.WARNING, "Vagrant root path is invalid. clear the path settings.");
+                workDir(FileUtil.toFile(project.getProjectDirectory()));
+            }
+        }
+    }
+
     /**
      * Get formatted status. (e.g. default: not created)
      *
@@ -550,6 +608,41 @@ public final class Vagrant {
             return sb.toString();
         }
         return status;
+    }
+
+    @CheckForNull
+    public SshInfo getSshInfo(Project project) throws InvalidVagrantExecutableException {
+        if (project == null) {
+            return null;
+        }
+        setWorkDir(project);
+        VagrantLineProcessor lineProcessor = new VagrantLineProcessor();
+        setCommand(SSH_CONFIG_COMMAND);
+        descriptor = getSilentDescriptor()
+                .outProcessorFactory(getOutputProcessorFactory(lineProcessor));
+        Future<Integer> result = ExecutionService.newService(getProcessBuilder(), descriptor, "").run(); // NOI18N
+        getResult(result);
+        String hostName = ""; // NOI18N
+        String user = ""; // NOI18N
+        int port = -1;
+        for (String line : lineProcessor.getList()) {
+            line = line.trim().replace(" +", " "); // NOI18N
+            if (line.startsWith("HostName ")) { // NOI18N
+                hostName = line.replace("HostName ", ""); // NOI18N
+            }
+
+            if (line.startsWith("User ")) { // NOI18N
+                user = line.replace("User ", ""); // NOI18N
+            }
+
+            if (line.startsWith("Port ")) { // NOI18N
+                port = Integer.parseInt(line.replace("Port ", "")); // NOI18N
+            }
+        }
+        if (!StringUtils.isEmpty(hostName) && !StringUtils.isEmpty(user) && port != -1) {
+            return new SshInfo(hostName, user, port);
+        }
+        return null;
     }
 
     /**
@@ -618,7 +711,7 @@ public final class Vagrant {
                 .noInfo(true);
         String version;
         try {
-            version = vagrant.getVersion();
+            version = vagrant.getVersionNumber();
         } catch (InvalidVagrantExecutableException ex) {
             if (warn) {
                 VagrantUtils.showWarnigDialog(ex.getMessage());
@@ -805,6 +898,12 @@ public final class Vagrant {
         return new ExecutionDescriptor.InputProcessorFactory() {
             @Override
             public InputProcessor newInputProcessor(InputProcessor defaultProcessor) {
+                if (SHARE_COMMAND.equals(command)) {
+                    return InputProcessors.proxy(
+                            new InfoInputProcessor(defaultProcessor, fullCommand),
+                            defaultProcessor,
+                            InputProcessors.ansiStripping(InputProcessors.bridge(new VagrantShareLineProcessor())));
+                }
                 return InputProcessors.proxy(new InfoInputProcessor(defaultProcessor, fullCommand), defaultProcessor);
             }
         };
@@ -857,6 +956,46 @@ public final class Vagrant {
             }
             return sb.toString().trim();
         }
+    }
+
+    private static class VagrantShareLineProcessor implements LineProcessor {
+
+        private static final Pattern URL_PATTERN = Pattern.compile("\\A.+(?<http>http://.+vagrantshare.com).*\\z"); // NOI18N
+
+        @Override
+        public void processLine(String line) {
+            Matcher matcher = URL_PATTERN.matcher(line);
+            if (matcher.find()) {
+                String vagrantshareUrl = matcher.group("http"); // NOI18N
+                if (vagrantshareUrl == null) {
+                    return;
+                }
+                try {
+                    URL url = new URL(vagrantshareUrl);
+                    VagrantOptions options = VagrantOptions.getInstance();
+                    if (options.isShareOpenUrl()) {
+                        HtmlBrowser.URLDisplayer.getDefault().showURL(url);
+                    }
+
+                    if (options.isShareCopyUrl()) {
+                        Toolkit toolkit = Toolkit.getDefaultToolkit();
+                        Clipboard clipboard = toolkit.getSystemClipboard();
+                        clipboard.setContents(new StringSelection(vagrantshareUrl), null);
+                    }
+                } catch (MalformedURLException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
+            }
+        }
+
+        @Override
+        public void reset() {
+        }
+
+        @Override
+        public void close() {
+        }
+
     }
 
     /**
@@ -948,4 +1087,5 @@ public final class Vagrant {
             return processBuilder.start();
         }
     }
+
 }

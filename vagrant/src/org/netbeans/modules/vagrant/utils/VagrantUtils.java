@@ -68,6 +68,8 @@ public class VagrantUtils {
     public static final String RESUME_ICON_16 = RESOURCES_PATH + "resume.png"; // NOI18N
     public static final String DESTROY_ICON_16 = RESOURCES_PATH + "destroy.png"; // NOI18N
     public static final String STATUS_ICON_16 = RESOURCES_PATH + "status.png"; // NOI18N
+    public static final String SHARE_ICON_16 = RESOURCES_PATH + "share.png"; // NOI18N
+    public static final String SSH_ICON_16 = RESOURCES_PATH + "ssh.png"; // NOI18N
     public static final String INIT_ICON_16 = RESOURCES_PATH + "init.png"; // NOI18N
     public static final String OPTIONS_ICON_16 = RESOURCES_PATH + "options.png"; // NOI18N
     public static final String RUN_COMMAND_ICON_16 = RESOURCES_PATH + "run_command.png"; // NOI18N
@@ -82,13 +84,13 @@ public class VagrantUtils {
     }
 
     /**
-     * Get script extension. Return .bat if OS is Windows, otherwise return .sh.
+     * Get script extension. Return .exe if OS is Windows, otherwise return .sh.
      *
      * @return extension
      */
     public static String getScriptExt() {
         if (Utilities.isWindows()) {
-            return ".bat"; // NOI18N
+            return ".exe"; // NOI18N
         }
         return ".sh"; // NOI18N
     }

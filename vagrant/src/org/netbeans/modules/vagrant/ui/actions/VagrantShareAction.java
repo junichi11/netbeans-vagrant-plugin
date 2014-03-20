@@ -43,49 +43,36 @@ package org.netbeans.modules.vagrant.ui.actions;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.SwingUtilities;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.dlight.api.terminal.TerminalSupport;
-import org.netbeans.modules.nativeexecution.api.ExecutionEnvironment;
-import org.netbeans.modules.nativeexecution.api.ExecutionEnvironmentFactory;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
-import org.netbeans.modules.vagrant.command.SshInfo;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle.Messages;
 
-@Messages("CTL_VagrantSshAction=Vagrant ssh")
-public final class VagrantSshAction extends VagrantAction {
+@ActionID(
+        category = "Vagrant",
+        id = "org.netbeans.modules.vagrant.ui.actions.VagrantShareAction")
+@ActionRegistration(
+        displayName = "#CTL_VagrantShareAction", lazy = false)
+@Messages("CTL_VagrantShareAction=Vagrant share")
+public final class VagrantShareAction extends VagrantAction {
 
-    private static final long serialVersionUID = -3351388651004111053L;
-    private static final Logger LOGGER = Logger.getLogger(VagrantSshAction.class.getName());
+    private static final long serialVersionUID = 4370069033259406951L;
+    private static final Logger LOGGER = Logger.getLogger(VagrantShareAction.class.getName());
 
-    public VagrantSshAction() {
-        super(Bundle.CTL_VagrantSshAction(), VagrantUtils.getIcon(VagrantUtils.SSH_ICON_16));
+    public VagrantShareAction() {
+        super(Bundle.CTL_VagrantShareAction(), VagrantUtils.getIcon(VagrantUtils.SHARE_ICON_16));
     }
 
     @Override
-    public void actionPerformed(final Project project) {
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    // vagrant ssh command is not run
-                    // instead, remote terminal is opened
-                    Vagrant vagrant = Vagrant.getDefault();
-                    SshInfo sshInfo = vagrant.getSshInfo(project);
-                    if (sshInfo != null) {
-                        ExecutionEnvironment executionEnvironment = ExecutionEnvironmentFactory.createNew(
-                                sshInfo.getUser(),
-                                sshInfo.getHostName(),
-                                sshInfo.getPort());
-                        TerminalSupport.openTerminal("Vagrant", executionEnvironment, null); // NOI18N
-                    }
-                } catch (InvalidVagrantExecutableException ex) {
-                    LOGGER.log(Level.WARNING, ex.getMessage());
-                }
-            }
-        });
+    public void actionPerformed(Project project) {
+        try {
+            Vagrant vagrant = Vagrant.getDefault();
+            vagrant.share(project);
+        } catch (InvalidVagrantExecutableException ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage());
+        }
     }
 }

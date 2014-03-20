@@ -11,7 +11,7 @@ Please check the following site:
 ## Requirements
 
 - NetBeans 7.4 or newer
-- Vagrant 1.4.3 or newer
+- Vagrant 1.5.0 or newer
 
 ## Install
 
@@ -61,6 +61,8 @@ Tools > Options > Miscellaneous > Vagrant
 - halt
 - init
 - status
+- share
+- ssh
 - ssh-config
 - destroy
 - provision
@@ -118,9 +120,15 @@ Otherwise, just display "not created". We can reload the status display if we do
 
 ![run command](https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant/screenshots/nb-vagrant-statusbar.png)
 
-### Notice
+### Note
 
 Will take a little time when you access files or directories for your project at the first time.
+
+## Syntax Highlight for Vagrantfile
+
+![syntax highlight](https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant/screenshots/nb-vagrant-syntax-highlight-vagrantfile.png)
+
+Need Ruby plugin (http://plugins.netbeans.org/plugin/38549/ruby-and-rails)
 
 ## Troubleshooting
 
@@ -139,7 +147,6 @@ Probably, the following message will be shown *"sudo: no tty present and no askp
 
 If passwd is visible, we can avoid this. **But this is not good.**
 So, please run vagrant command with terminal if this message is shown.
-
 
 ## Issues
 
@@ -162,7 +169,7 @@ Available on Plugin Portal.
 Please add the following url:  
 https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant-dev/7.3/updates.xml
 
-### Notice
+### Note
 
 You should not use the development version except to test issues.
 

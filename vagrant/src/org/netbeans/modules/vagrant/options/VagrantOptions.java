@@ -56,6 +56,8 @@ public final class VagrantOptions {
     private static final String VAGRANT_PATH = "vagrant.path"; // NOI18N
     private static final String BOXES_URL = "boxes.url"; // NOI18N
     private static final String SHOW_STATUS = "show.status"; // NOI18N
+    private static final String ACTIONS_SHARE_OPEN_URL = "actions.share.open.url"; // NOI18N
+    private static final String ACTIONS_SHARE_COPY_URL = "actions.share.copy.url"; // NOI18N
 
     private VagrantOptions() {
     }
@@ -86,6 +88,22 @@ public final class VagrantOptions {
 
     public void setShowStatus(boolean show) {
         getPreferences().putBoolean(SHOW_STATUS, show);
+    }
+
+    public boolean isShareOpenUrl() {
+        return getPreferences().getBoolean(ACTIONS_SHARE_OPEN_URL, true);
+    }
+
+    public void setShareOpenUrl(boolean isOpen) {
+        getPreferences().putBoolean(ACTIONS_SHARE_OPEN_URL, isOpen);
+    }
+
+    public boolean isShareCopyUrl() {
+        return getPreferences().getBoolean(ACTIONS_SHARE_COPY_URL, true);
+    }
+
+    public void setShareCopyUrl(boolean isCopy) {
+        getPreferences().putBoolean(ACTIONS_SHARE_COPY_URL, isCopy);
     }
 
     private Preferences getPreferences() {
