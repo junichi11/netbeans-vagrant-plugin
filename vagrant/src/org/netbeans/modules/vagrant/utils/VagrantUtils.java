@@ -167,6 +167,16 @@ public class VagrantUtils {
         FileObject vagrantfile = fileObject.getFileObject(VAGRANTFILE);
         // #7 casing doesn't matter
         if (vagrantfile == null) {
+            FileObject[] children = fileObject.getChildren();
+            for (FileObject child : children) {
+                if (child.isFolder()) {
+                    continue;
+                }
+                String nameExt = child.getNameExt();
+                if (VAGRANTFILE.toLowerCase().equals(nameExt.toLowerCase())) {
+                    return true;
+                }
+            }
             vagrantfile = fileObject.getFileObject(VAGRANTFILE.toLowerCase());
         }
 
