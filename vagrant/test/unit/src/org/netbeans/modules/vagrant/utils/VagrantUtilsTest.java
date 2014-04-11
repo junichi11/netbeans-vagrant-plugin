@@ -170,26 +170,32 @@ public class VagrantUtilsTest extends NbTestCase {
     public void testHasVagrantfile() throws IOException {
         FileSystem fileSystem = FileUtil.createMemoryFileSystem();
         FileObject root = fileSystem.getRoot();
-        FileObject hasParent = root.createFolder("hasVagrantfile");
+        FileObject hasVagrantfileParent = root.createFolder("hasVagrantfile");
+        FileObject vagrantfile = hasVagrantfileParent.createData("Vagrantfile");
         // #7 casing doesn't matter
         FileObject hasLowercaseParent = root.createFolder("hasLowercaseVagrantfile");
-        FileObject vagrantfile = hasParent.createData("Vagrantfile");
         FileObject lowercaseVagrantfile = hasLowercaseParent.createData("vagrantfile");
+
+        FileObject hasVagrantFileParent = root.createFolder("hasVagrantFile");
+        FileObject VagrantFile = hasVagrantFileParent.createData("VagrantFile");
+
         FileObject hasNotParent = root.createFolder("hasNotVagrantfile");
         FileObject hasFolderParent = root.createFolder("hasFolderVagrantfile");
         hasFolderParent.createFolder("Vagrantfile");
 
-        assertTrue(VagrantUtils.hasVagrantfile(hasParent));
+        assertTrue(VagrantUtils.hasVagrantfile(hasVagrantfileParent));
         assertTrue(VagrantUtils.hasVagrantfile(hasLowercaseParent));
+        assertTrue(VagrantUtils.hasVagrantfile(hasVagrantFileParent));
 
         assertFalse(VagrantUtils.hasVagrantfile(hasNotParent));
         assertFalse(VagrantUtils.hasVagrantfile(hasFolderParent));
         assertFalse(VagrantUtils.hasVagrantfile(vagrantfile));
         assertFalse(VagrantUtils.hasVagrantfile(vagrantfile));
 
-        hasParent.delete();
+        hasVagrantfileParent.delete();
         hasNotParent.delete();
         hasFolderParent.delete();
         hasLowercaseParent.delete();
+        hasVagrantFileParent.delete();
     }
 }

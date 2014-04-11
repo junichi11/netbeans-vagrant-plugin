@@ -59,6 +59,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.project.Project;
@@ -79,6 +80,7 @@ import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
 import org.openide.util.NbBundle;
+import org.openide.util.RequestProcessor;
 import org.openide.util.Utilities;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -95,6 +97,7 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
     private final Map<Project, String> statusCache = new HashMap<Project, String>();
     private final Set<Project> changedProjects = new HashSet<Project>();
     private boolean isShowStatus;
+    private static final RequestProcessor RP = new RequestProcessor(VagrantStatusLineElement.class);
 
     public VagrantStatusLineElement() {
         // add listeners
@@ -140,52 +143,60 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
 
     @Override
     public void resultChanged(final LookupEvent lookupEvent) {
-        new Thread(new Runnable() {
+        if (!isShowStatus) {
+            clearStatusLabel();
+            return;
+        }
+        if (VagrantOptions.getInstance().getVagrantPath().isEmpty()) {
+            clearStatusLabel();
+            return;
+        }
+
+        // get FileObject
+        FileObject fileObject = getFileObject(lookupEvent);
+
+        // get Project
+        Project currentProject = null;
+        if (fileObject != null) {
+            currentProject = VagrantUtils.getProject(fileObject);
+        }
+        if (currentProject == null) {
+            currentProject = FileUtils.getProject();
+        }
+        if (currentProject == null) {
+            clearStatusLabel();
+            return;
+        }
+
+        // keep current project
+        if (project == currentProject) {
+            return;
+        }
+        project = currentProject;
+
+        // has Vagrantfile?
+        FileObject vagrantRoot = getVagrantRoot();
+        if (!VagrantUtils.hasVagrantfile(vagrantRoot)) {
+            setStatus("not created");
+            return;
+        }
+
+        // try get from cache
+        String status = statusCache.get(project);
+        if (status != null) {
+            setStatus(status);
+            return;
+        }
+
+        RP.post(new Runnable() {
             @Override
             public void run() {
-                if (!isShowStatus) {
-                    clearStatusLabel();
-                    return;
-                }
-                if (VagrantOptions.getInstance().getVagrantPath().isEmpty()) {
-                    clearStatusLabel();
-                    return;
-                }
-
-                // get FileObject
-                FileObject fileObject = getFileObject(lookupEvent);
-
-                // get Project
-                Project currentProject = null;
-                if (fileObject != null) {
-                    currentProject = VagrantUtils.getProject(fileObject);
-                }
-                if (currentProject == null) {
-                    currentProject = FileUtils.getProject();
-                }
-                if (currentProject == null) {
-                    clearStatusLabel();
-                    return;
-                }
-
-                // keep current project
-                if (project == currentProject) {
-                    return;
-                }
-                project = currentProject;
-
-                // has Vagrantfile?
-                FileObject vagrantRoot = getVagrantRoot();
-                if (!VagrantUtils.hasVagrantfile(vagrantRoot)) {
-                    setStatus("not created");
-                    return;
-                }
                 String status = getStatus(project, false);
 
                 // update view
                 setStatus(status);
             }
-        }).start();
+        });
     }
 
     /**
@@ -193,22 +204,51 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
      *
      * @param status Vagrant status
      */
-    private void setStatus(String status) {
-        if (status == null) {
-            clearStatusLabel();
+    private void setStatus(final String status) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            if (status == null) {
+                clearStatusLabel();
+                return;
+            }
+            statusLabel.setText(status);
+            statusLabel.setIcon(VagrantUtils.getIcon(VagrantUtils.VAGRANT_ICON_16));
             return;
         }
-        statusLabel.setText(status);
-        statusLabel.setIcon(VagrantUtils.getIcon(VagrantUtils.VAGRANT_ICON_16));
+
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                if (status == null) {
+                    clearStatusLabel();
+                    return;
+                }
+                statusLabel.setText(status);
+                statusLabel.setIcon(VagrantUtils.getIcon(VagrantUtils.VAGRANT_ICON_16));
+            }
+        });
     }
 
     /**
      * Clear status label.
      */
     private void clearStatusLabel() {
-        project = null;
-        statusLabel.setText(""); // NOI18N
-        statusLabel.setIcon(null);
+        if (SwingUtilities.isEventDispatchThread()) {
+            project = null;
+            statusLabel.setText(""); // NOI18N
+            statusLabel.setIcon(null);
+            return;
+        }
+
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                project = null;
+                statusLabel.setText(""); // NOI18N
+                statusLabel.setIcon(null);
+            }
+        });
     }
 
     /**
