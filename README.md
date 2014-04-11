@@ -166,8 +166,8 @@ Available on Plugin Portal.
 
 ## Development version
 
-Please add the following url:  
-https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant-dev/7.3/updates.xml
+I'll add new nbm for development to the following:  
+https://github.com/junichi11/netbeans-vagrant-plugin/releases
 
 ### Note
 
