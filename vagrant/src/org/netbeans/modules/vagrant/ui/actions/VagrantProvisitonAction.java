@@ -46,6 +46,9 @@ import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
+import org.netbeans.modules.vagrant.utils.VagrantUtils;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle;
 
 /**
@@ -53,6 +56,11 @@ import org.openide.util.NbBundle;
  *
  * @author junichi11
  */
+@ActionID(
+        category = "Vagrant",
+        id = "org.netbeans.modules.vagrant.ui.actions.VagrantProvisionAction")
+@ActionRegistration(
+        displayName = "#CTL_VagrantProvisionAction", lazy = false)
 @NbBundle.Messages("CTL_VagrantProvisionAction=Vagrant provision")
 public final class VagrantProvisitonAction extends VagrantAction {
 
@@ -60,7 +68,7 @@ public final class VagrantProvisitonAction extends VagrantAction {
     private static final Logger LOGGER = Logger.getLogger(VagrantProvisitonAction.class.getName());
 
     public VagrantProvisitonAction() {
-        super(Bundle.CTL_VagrantProvisionAction());
+        super(Bundle.CTL_VagrantProvisionAction(), VagrantUtils.getIcon(VagrantUtils.PROVISION_ICON_16));
     }
 
     @Override

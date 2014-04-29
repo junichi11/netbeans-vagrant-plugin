@@ -71,6 +71,7 @@ public class VagrantUtils {
     public static final String SHARE_ICON_16 = RESOURCES_PATH + "share.png"; // NOI18N
     public static final String SSH_ICON_16 = RESOURCES_PATH + "ssh.png"; // NOI18N
     public static final String INIT_ICON_16 = RESOURCES_PATH + "init.png"; // NOI18N
+    public static final String PROVISION_ICON_16 = RESOURCES_PATH + "provision.png"; // NOI18N
     public static final String OPTIONS_ICON_16 = RESOURCES_PATH + "options.png"; // NOI18N
     public static final String RUN_COMMAND_ICON_16 = RESOURCES_PATH + "run_command.png"; // NOI18N
     public static final String VAGRANTFILE = "Vagrantfile"; // NOI18N
