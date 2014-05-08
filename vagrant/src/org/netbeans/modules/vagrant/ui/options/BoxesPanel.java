@@ -44,11 +44,13 @@ package org.netbeans.modules.vagrant.ui.options;
 import java.awt.Cursor;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
@@ -67,6 +69,7 @@ public final class BoxesPanel extends VagrantCategoryPanel {
     private static final long serialVersionUID = 6099328973907741899L;
     private static final String CATEGORY_NAME = "Boxes"; // NOI18N
     private List<String> boxList;
+    private static final Logger LOGGER = Logger.getLogger(BoxesPanel.class.getName());
 
     public BoxesPanel() {
         initComponents();
@@ -374,18 +377,35 @@ public final class BoxesPanel extends VagrantCategoryPanel {
             return;
         }
 
-        // get box name and provider
+        // get box name, provider and version
+        ArrayList<String> params = new ArrayList<String>();
         String boxName = VagrantUtils.getBoxName(selectedValue);
         if (boxName == null) {
             return;
         }
-        String provider = VagrantUtils.getProvider(selectedValue);
-        provider = provider == null ? "" : provider;  // NOI18N
+        params.add(boxName);
+
+        String provider = VagrantUtils.getBoxProvider(selectedValue);
+        String version = VagrantUtils.getBoxVersion(selectedValue);
+        if (version != null) {
+            // vagrant 1.5.x
+            if (provider != null) {
+                params.add("--provider"); // NOI18N
+                params.add(provider);
+                params.add("--box-version"); // NOI18N
+                params.add(version);
+            }
+        } else {
+            // vagatnt 1.4.x
+            if (provider != null) {
+                params.add(provider);
+            }
+        }
 
         // run command
         try {
             Vagrant vagrant = Vagrant.getDefault();
-            Future<Integer> result = vagrant.box(Vagrant.BOX.REMOVE, Arrays.asList(boxName, provider));
+            Future<Integer> result = vagrant.box(Vagrant.BOX.REMOVE, params);
             try {
                 result.get();
             } catch (InterruptedException ex) {
@@ -395,7 +415,7 @@ public final class BoxesPanel extends VagrantCategoryPanel {
             }
             reload();
         } catch (InvalidVagrantExecutableException ex) {
-            // TODO
+            LOGGER.log(Level.WARNING, ex.getMessage());
         }
     }//GEN-LAST:event_removeButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables

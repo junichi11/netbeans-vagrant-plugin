@@ -41,6 +41,8 @@
  */
 package org.netbeans.modules.vagrant.utils;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.ImageIcon;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
@@ -54,7 +56,7 @@ import org.openide.util.Utilities;
  *
  * @author junichi11
  */
-public class VagrantUtils {
+public final class VagrantUtils {
 
     private static final String RESOURCES_PATH = "org/netbeans/modules/vagrant/resources/"; // NOI18N
     public static final String VAGRANT_ICON_12 = RESOURCES_PATH + "logo_12.png"; // NOI18N
@@ -75,6 +77,7 @@ public class VagrantUtils {
     public static final String OPTIONS_ICON_16 = RESOURCES_PATH + "options.png"; // NOI18N
     public static final String RUN_COMMAND_ICON_16 = RESOURCES_PATH + "run_command.png"; // NOI18N
     public static final String VAGRANTFILE = "Vagrantfile"; // NOI18N
+    private static final Pattern BOX_LIST_PATTERN = Pattern.compile("\\A(?<name>[^ ]+?)( +(\\((?<provider>.+?)(, *(?<version>.+)|)\\))|)\\z"); // NOI18N
 
     private VagrantUtils() {
     }
@@ -107,52 +110,44 @@ public class VagrantUtils {
     }
 
     /**
-     * Get box data.
-     *
-     * @param boxName full box name
-     * @return box data as array
-     */
-    public static String[] boxNameSplit(String boxName) {
-        boxName = boxName.trim();
-        boxName = boxName.replaceAll(" +", " "); // NOI18N
-        String[] split = boxName.split(" "); // NOI18N
-        if (split.length >= 3) {
-            return null;
-        }
-
-        if (split.length == 2) {
-            String provider = split[1];
-            split[1] = provider.replaceAll("[()]", ""); // NOI18N
-        }
-        return split;
-    }
-
-    /**
      * Get box name from full box data.
      *
-     * @param boxName full box data e.g. "boxname (virtualbox)"
-     * @return box name
+     * @param boxText full box data e.g. "boxname (virtualbox)"
+     * @return box name | {@code null}
      */
-    public static String getBoxName(String boxName) {
-        String[] boxNameSplit = boxNameSplit(boxName);
-        if (boxNameSplit == null) {
-            return null;
-        }
-        return boxNameSplit[0];
+    public static String getBoxName(String boxText) {
+        return getBoxListItem(boxText, "name"); // NOI18N
     }
 
     /**
      * Get box provider from full box data.
      *
-     * @param boxName full box data e.g. "boxname (virtualbox)"
-     * @return box provider
+     * @param boxText full box data e.g. "boxname (virtualbox)"
+     * @return box provider | {@code null}
      */
-    public static String getProvider(String boxName) {
-        String[] boxNameSplit = boxNameSplit(boxName);
-        if (boxNameSplit == null || boxNameSplit.length != 2) {
-            return null;
+    public static String getBoxProvider(String boxText) {
+        return getBoxListItem(boxText, "provider"); // NOI18N
+    }
+
+    /**
+     * Get box version number from full box data.
+     *
+     * @param boxText
+     * @return box version number | {@code null}
+     */
+    public static String getBoxVersion(String boxText) {
+        return getBoxListItem(boxText, "version"); // NOI18N
+    }
+
+    private static String getBoxListItem(String boxText, String name) {
+        Matcher matcher = BOX_LIST_PATTERN.matcher(boxText);
+        if (matcher.find()) {
+            String item = matcher.group(name);
+            if (item != null) {
+                return item.trim();
+            }
         }
-        return boxNameSplit[1];
+        return null;
     }
 
     /**

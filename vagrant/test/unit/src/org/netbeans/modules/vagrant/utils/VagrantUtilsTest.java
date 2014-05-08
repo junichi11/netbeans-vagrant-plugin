@@ -43,7 +43,6 @@ package org.netbeans.modules.vagrant.utils;
 
 import java.io.IOException;
 import static junit.framework.Assert.assertEquals;
-import static org.junit.Assert.assertArrayEquals;
 import org.junit.Test;
 import org.netbeans.junit.NbTestCase;
 import org.openide.filesystems.FileObject;
@@ -75,36 +74,6 @@ public class VagrantUtilsTest extends NbTestCase {
     }
 
     /**
-     * Test of boxNameSplit method, of class VagrantUtils.
-     */
-    @Test
-    public void testBoxNameSplit() {
-        String boxName = "test (virtualbox)";
-        String[] expect = {"test", "virtualbox"};
-        String[] result = VagrantUtils.boxNameSplit(boxName);
-        assertArrayEquals(expect, result);
-
-        boxName = "test  (virtualbox)";
-        result = VagrantUtils.boxNameSplit(boxName);
-        assertArrayEquals(expect, result);
-
-        boxName = "test   (virtualbox)";
-        result = VagrantUtils.boxNameSplit(boxName);
-        assertArrayEquals(expect, result);
-
-        boxName = "test";
-        expect = new String[]{"test"};
-        result = VagrantUtils.boxNameSplit(boxName);
-        assertArrayEquals(expect, result);
-
-        boxName = "test   (virtualbox) some";
-        expect = null;
-        result = VagrantUtils.boxNameSplit(boxName);
-        assertArrayEquals(expect, result);
-
-    }
-
-    /**
      * Test of getBoxName method, of class VagrantUtils.
      */
     @Test
@@ -130,34 +99,88 @@ public class VagrantUtilsTest extends NbTestCase {
         expect = null;
         result = VagrantUtils.getBoxName(boxName);
         assertEquals(expect, result);
+
+        // version 1.5.x
+        boxName = "box-name   (virtualbox, 0)";
+        expect = "box-name";
+        result = VagrantUtils.getBoxName(boxName);
+        assertEquals(expect, result);
     }
 
     /**
-     * Test of getBoxName method, of class VagrantUtils.
+     * Test of getBoxProvider method, of class VagrantUtils.
      */
     @Test
-    public void testGetProvider() {
+    public void testGetBoxProvider() {
         String boxName = "box-name (virtualbox)";
         String expect = "virtualbox";
-        String result = VagrantUtils.getProvider(boxName);
+        String result = VagrantUtils.getBoxProvider(boxName);
         assertEquals(expect, result);
 
         boxName = "box-name  (virtualbox)";
-        result = VagrantUtils.getProvider(boxName);
+        result = VagrantUtils.getBoxProvider(boxName);
         assertEquals(expect, result);
 
         boxName = "box-name   (virtualbox)";
-        result = VagrantUtils.getProvider(boxName);
+        result = VagrantUtils.getBoxProvider(boxName);
         assertEquals(expect, result);
 
         boxName = "box-name";
         expect = null;
-        result = VagrantUtils.getProvider(boxName);
+        result = VagrantUtils.getBoxProvider(boxName);
         assertEquals(expect, result);
 
         boxName = "box-name   (virtualbox) some";
         expect = null;
-        result = VagrantUtils.getProvider(boxName);
+        result = VagrantUtils.getBoxProvider(boxName);
+        assertEquals(expect, result);
+
+        // version 1.5.x
+        boxName = "box-name   (virtualbox, 0)";
+        expect = "virtualbox";
+        result = VagrantUtils.getBoxProvider(boxName);
+        assertEquals(expect, result);
+    }
+
+    /**
+     * Test of getBoxVersion method, of class VagrantUtils. since Vagrant 1.5.x
+     */
+    @Test
+    public void testGetBoxVersion() {
+        String boxName = "box-name (virtualbox)";
+        String expect = null;
+        String result = VagrantUtils.getBoxVersion(boxName);
+        assertEquals(expect, result);
+
+        boxName = "box-name  (virtualbox)";
+        expect = null;
+        result = VagrantUtils.getBoxVersion(boxName);
+        assertEquals(expect, result);
+
+        boxName = "box-name   (virtualbox)";
+        expect = null;
+        result = VagrantUtils.getBoxVersion(boxName);
+        assertEquals(expect, result);
+
+        boxName = "box-name";
+        expect = null;
+        result = VagrantUtils.getBoxVersion(boxName);
+        assertEquals(expect, result);
+
+        boxName = "box-name   (virtualbox) some";
+        expect = null;
+        result = VagrantUtils.getBoxVersion(boxName);
+        assertEquals(expect, result);
+
+        // version 1.5.x
+        boxName = "box-name   (virtualbox, 0)";
+        expect = "0";
+        result = VagrantUtils.getBoxVersion(boxName);
+        assertEquals(expect, result);
+
+        boxName = "box-name   (virtualbox, 1.1.0)";
+        expect = "1.1.0";
+        result = VagrantUtils.getBoxVersion(boxName);
         assertEquals(expect, result);
     }
 

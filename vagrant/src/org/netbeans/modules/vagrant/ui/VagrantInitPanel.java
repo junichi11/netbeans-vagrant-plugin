@@ -52,7 +52,6 @@ import javax.swing.event.DocumentListener;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.ui.options.GeneralPanel;
-import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.filesystems.FileChooserBuilder;
@@ -86,10 +85,7 @@ public class VagrantInitPanel extends JPanel {
             Vagrant vagrant = Vagrant.getDefault();
             List<String> boxList = vagrant.getBoxList();
             for (String box : boxList) {
-                String[] boxNameSplit = VagrantUtils.boxNameSplit(box);
-                if (boxNameSplit != null) {
-                    boxNameComboBox.addItem(boxNameSplit[0]);
-                }
+                boxNameComboBox.addItem(box);
             }
         } catch (InvalidVagrantExecutableException ex) {
         }
