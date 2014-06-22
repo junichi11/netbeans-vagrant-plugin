@@ -130,6 +130,14 @@ Will take a little time when you access files or directories for your project at
 
 Need Ruby plugin (http://plugins.netbeans.org/plugin/38549/ruby-and-rails)
 
+## Action when project is closed
+
+We can set an action when project is closed to the project properties.
+
+- none : do nothing
+- halt : run halt command
+- halt (ask) : popup a question dialog, if you push `OK` button, project will be closed
+
 ## Troubleshooting
 
 ### VM state is "aborted"
