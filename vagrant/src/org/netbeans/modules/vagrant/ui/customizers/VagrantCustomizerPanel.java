@@ -49,6 +49,7 @@ import javax.swing.event.DocumentListener;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 import org.netbeans.modules.vagrant.ui.options.GeneralPanel;
+import org.netbeans.modules.vagrant.ui.project.ProjectClosedAction;
 import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.filesystems.FileChooserBuilder;
@@ -150,12 +151,45 @@ public final class VagrantCustomizerPanel extends JPanel {
         return vagrantRootPathTextField.getText().trim();
     }
 
+    public ProjectClosedAction getProjectClosedAction() {
+        if (projectClosedNoneRadioButton.isSelected()) {
+            return ProjectClosedAction.NONE;
+        }
+        if (projectClosedHaltRadioButton.isSelected()) {
+            return ProjectClosedAction.HALT;
+        }
+        if (projectClosedHaltAskRadioButton.isSelected()) {
+            return ProjectClosedAction.HALT_ASK;
+        }
+        return ProjectClosedAction.NONE;
+    }
+
+    private void setProjectClosedAction(ProjectClosedAction action) {
+        projectClosedbuttonGroup.clearSelection();
+        switch (action) {
+            case NONE:
+                projectClosedNoneRadioButton.setSelected(true);
+                break;
+            case HALT:
+                projectClosedHaltRadioButton.setSelected(true);
+                break;
+            case HALT_ASK:
+                projectClosedHaltAskRadioButton.setSelected(true);
+                break;
+            default:
+                projectClosedNoneRadioButton.setSelected(true);
+                break;
+        }
+    }
+
     public void load() {
         vagrantRootPathTextField.setText(VagrantPreferences.getVagrantPath(project));
+        setProjectClosedAction(VagrantPreferences.getProjectClosedAction(project));
     }
 
     public void save() {
         VagrantPreferences.setVagrantPath(project, getVagrantRootPath());
+        VagrantPreferences.setProjectClosedAction(project, getProjectClosedAction());
     }
 
     /**
@@ -167,9 +201,14 @@ public final class VagrantCustomizerPanel extends JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        projectClosedbuttonGroup = new javax.swing.ButtonGroup();
         vagrantRootPathLabel = new javax.swing.JLabel();
         vagrantRootPathTextField = new javax.swing.JTextField();
         browseButton = new javax.swing.JButton();
+        projectClosedLabel = new javax.swing.JLabel();
+        projectClosedNoneRadioButton = new javax.swing.JRadioButton();
+        projectClosedHaltRadioButton = new javax.swing.JRadioButton();
+        projectClosedHaltAskRadioButton = new javax.swing.JRadioButton();
 
         org.openide.awt.Mnemonics.setLocalizedText(vagrantRootPathLabel, org.openide.util.NbBundle.getMessage(VagrantCustomizerPanel.class, "VagrantCustomizerPanel.vagrantRootPathLabel.text")); // NOI18N
 
@@ -182,18 +221,44 @@ public final class VagrantCustomizerPanel extends JPanel {
             }
         });
 
+        org.openide.awt.Mnemonics.setLocalizedText(projectClosedLabel, org.openide.util.NbBundle.getMessage(VagrantCustomizerPanel.class, "VagrantCustomizerPanel.projectClosedLabel.text")); // NOI18N
+
+        projectClosedbuttonGroup.add(projectClosedNoneRadioButton);
+        org.openide.awt.Mnemonics.setLocalizedText(projectClosedNoneRadioButton, org.openide.util.NbBundle.getMessage(VagrantCustomizerPanel.class, "VagrantCustomizerPanel.projectClosedNoneRadioButton.text")); // NOI18N
+
+        projectClosedbuttonGroup.add(projectClosedHaltRadioButton);
+        org.openide.awt.Mnemonics.setLocalizedText(projectClosedHaltRadioButton, org.openide.util.NbBundle.getMessage(VagrantCustomizerPanel.class, "VagrantCustomizerPanel.projectClosedHaltRadioButton.text")); // NOI18N
+
+        projectClosedbuttonGroup.add(projectClosedHaltAskRadioButton);
+        org.openide.awt.Mnemonics.setLocalizedText(projectClosedHaltAskRadioButton, org.openide.util.NbBundle.getMessage(VagrantCustomizerPanel.class, "VagrantCustomizerPanel.projectClosedHaltAskRadioButton.text")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(vagrantRootPathLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(vagrantRootPathTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 186, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(browseButton)
-                .addContainerGap())
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(vagrantRootPathLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(vagrantRootPathTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 186, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(browseButton))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(projectClosedLabel)
+                                .addGap(0, 0, Short.MAX_VALUE)))
+                        .addContainerGap())
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addComponent(projectClosedNoneRadioButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(projectClosedHaltRadioButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(projectClosedHaltAskRadioButton)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -203,6 +268,13 @@ public final class VagrantCustomizerPanel extends JPanel {
                     .addComponent(vagrantRootPathLabel)
                     .addComponent(vagrantRootPathTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(browseButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(projectClosedLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(projectClosedNoneRadioButton)
+                    .addComponent(projectClosedHaltRadioButton)
+                    .addComponent(projectClosedHaltAskRadioButton))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -221,6 +293,11 @@ public final class VagrantCustomizerPanel extends JPanel {
     }//GEN-LAST:event_browseButtonActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton browseButton;
+    private javax.swing.JRadioButton projectClosedHaltAskRadioButton;
+    private javax.swing.JRadioButton projectClosedHaltRadioButton;
+    private javax.swing.JLabel projectClosedLabel;
+    private javax.swing.JRadioButton projectClosedNoneRadioButton;
+    private javax.swing.ButtonGroup projectClosedbuttonGroup;
     private javax.swing.JLabel vagrantRootPathLabel;
     private javax.swing.JTextField vagrantRootPathTextField;
     // End of variables declaration//GEN-END:variables

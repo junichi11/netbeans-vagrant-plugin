@@ -44,6 +44,7 @@ package org.netbeans.modules.vagrant.preferences;
 import java.util.prefs.Preferences;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
+import org.netbeans.modules.vagrant.ui.project.ProjectClosedAction;
 
 /**
  *
@@ -52,6 +53,7 @@ import org.netbeans.api.project.ProjectUtils;
 public final class VagrantPreferences {
 
     private static final String VAGRANT_PATH = "vagrant-path"; // NOI18N
+    private static final String PROJECT_CLOSED_ACTION = "project-closed-action"; // NOI18N
 
     private VagrantPreferences() {
     }
@@ -62,6 +64,19 @@ public final class VagrantPreferences {
 
     public static void setVagrantPath(Project project, String path) {
         getPreferences(project).put(VAGRANT_PATH, path);
+    }
+
+    public static ProjectClosedAction getProjectClosedAction(Project project) {
+        String actionName = getPreferences(project).get(PROJECT_CLOSED_ACTION, ProjectClosedAction.NONE.toString()); // NOI18N
+        ProjectClosedAction action = ProjectClosedAction.toEnum(actionName);
+        if (action == null) {
+            return ProjectClosedAction.NONE;
+        }
+        return action;
+    }
+
+    public static void setProjectClosedAction(Project project, ProjectClosedAction action) {
+        getPreferences(project).put(PROJECT_CLOSED_ACTION, action.toString());
     }
 
     private static Preferences getPreferences(Project project) {

@@ -48,11 +48,10 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
+import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.netbeans.spi.project.LookupProvider;
 import org.netbeans.spi.project.ui.ProjectOpenedHook;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.util.lookup.Lookups;
@@ -101,14 +100,8 @@ public class VagrantLookupProvider implements LookupProvider {
                     // status confirmation
                     for (String status : statuses) {
                         if (status.contains("running")) { // NOI18N
-                            NotifyDescriptor.Message message = new NotifyDescriptor.Message(
-                                    Bundle.VagrantLookupProvider_closed_message(project.getProjectDirectory().getName()),
-                                    NotifyDescriptor.QUESTION_MESSAGE
-                            );
-                            // run halt command
-                            if (DialogDisplayer.getDefault().notify(message) == NotifyDescriptor.OK_OPTION) {
-                                vagrant.halt(project);
-                            }
+                            ProjectClosedAction closedAction = VagrantPreferences.getProjectClosedAction(project);
+                            closedAction.run(project, vagrant);
                             break;
                         }
                     }
