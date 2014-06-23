@@ -49,11 +49,16 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.NbBundle;
 
 /**
  *
  * @author junichi11
  */
+@NbBundle.Messages({
+    "# {0} - project name",
+    "ProjectClosedAction.closed.message=Vagrant is running({0}). Do you want to run halt command?"
+})
 public enum ProjectClosedAction {
 
     NONE("none") { // NOI18N
@@ -79,7 +84,7 @@ public enum ProjectClosedAction {
                         @Override
                         public void run() {
                             NotifyDescriptor.Message message = new NotifyDescriptor.Message(
-                                    Bundle.VagrantLookupProvider_closed_message(project.getProjectDirectory().getName()),
+                                    Bundle.ProjectClosedAction_closed_message(project.getProjectDirectory().getName()),
                                     NotifyDescriptor.QUESTION_MESSAGE
                             );
                             // run halt command

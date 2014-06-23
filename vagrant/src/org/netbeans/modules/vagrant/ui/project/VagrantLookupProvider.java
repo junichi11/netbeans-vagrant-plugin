@@ -53,7 +53,6 @@ import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.netbeans.spi.project.LookupProvider;
 import org.netbeans.spi.project.ui.ProjectOpenedHook;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.lookup.Lookups;
 
 /**
@@ -74,10 +73,6 @@ public class VagrantLookupProvider implements LookupProvider {
 
     private static final Logger LOGGER = Logger.getLogger(VagrantLookupProvider.class.getName());
 
-    @NbBundle.Messages({
-        "# {0} - project name",
-        "VagrantLookupProvider.closed.message=Vagrant is running({0}). Do you want to run halt command?"
-    })
     @Override
     public Lookup createAdditionalLookup(Lookup lookup) {
         final Project project = lookup.lookup(Project.class);
