@@ -46,6 +46,7 @@ import java.util.Map;
 import javax.swing.SwingUtilities;
 import org.netbeans.api.annotations.common.CheckForNull;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.VagrantInstaller;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -64,21 +65,21 @@ public enum ProjectClosedAction {
     NONE("none") { // NOI18N
 
                 @Override
-                void run(Project project, Vagrant vagrant) {
+                void runAction(Project project, Vagrant vagrant) {
                     // noop
                 }
             },
     HALT("halt") { // NOI18N
 
                 @Override
-                void run(Project project, Vagrant vagrant) {
+                void runAction(Project project, Vagrant vagrant) {
                     vagrant.halt(project);
                 }
             },
     HALT_ASK("halt-ask") { // NOI18N
 
                 @Override
-                void run(final Project project, final Vagrant vagrant) {
+                void runAction(final Project project, final Vagrant vagrant) {
                     SwingUtilities.invokeLater(new Runnable() {
 
                         @Override
@@ -114,10 +115,18 @@ public enum ProjectClosedAction {
         return name;
     }
 
-    abstract void run(Project project, Vagrant vagrant);
+    public void run(Project project, Vagrant vagrant) {
+        if (VagrantInstaller.Status.getInstance().isShutdown()) {
+            return;
+        }
+        runAction(project, vagrant);
+    }
+
+    abstract void runAction(Project project, Vagrant vagrant);
 
     @CheckForNull
     public static ProjectClosedAction toEnum(String name) {
         return ENUMS.get(name);
     }
+
 }

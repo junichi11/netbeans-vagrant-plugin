@@ -96,10 +96,16 @@ public final class VagrantBoxesSupport {
 
             Elements trs = doc.select("tbody tr"); // NOI18N
             for (Element tr : trs) {
-                String name = tr.child(0).text().trim();
-                String provider = tr.child(1).text().trim();
-                String url = tr.child(2).text().trim();
-                String size = tr.child(3).text().trim();
+                // #22
+                Elements tds = tr.select("td"); // NOI18N
+                int childSize = tds.size();
+                String name = childSize >= 1 ? tr.child(0).text().trim() : ""; // NOI18N
+                if (name.isEmpty()) {
+                    continue;
+                }
+                String provider = childSize >= 2 ? tr.child(1).text().trim() : ""; // NOI18N
+                String url = childSize >= 3 ? tr.child(2).text().trim() : ""; // NOI18N
+                String size = childSize >= 4 ? tr.child(3).text().trim() : ""; // NOI18N
                 boxes.add(new VagrantBoxItem(name, provider, url, size));
             }
         } catch (IllegalCharsetNameException ex) {
