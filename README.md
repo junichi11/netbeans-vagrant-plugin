@@ -138,6 +138,10 @@ We can set an action when project is closed to the project properties.
 - halt : run halt command
 - halt (ask) : popup a question dialog, if you push `OK` button, project will be closed
 
+We can also run this action when we close the NetBeans. If you set `halt (ask)`, cofirmation dialog is shown.
+
+![halt confirmation dialog](https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant/screenshots/nb-vagrant-closing-confirmation.png)
+
 ## Status management window
 
 This window can show vagrant statuses of opened projects as list. You can also run commands (e.g. up, halt, ...) for a project.
