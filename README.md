@@ -138,6 +138,14 @@ We can set an action when project is closed to the project properties.
 - halt : run halt command
 - halt (ask) : popup a question dialog, if you push `OK` button, project will be closed
 
+## Status management window
+
+This window can show vagrant statuses of opened projects as list. You can also run commands (e.g. up, halt, ...) for a project.
+
+If you want to reopen the window after you close it, please check `Windows > Vagrant Statuses`.
+
+![Vagrant statuses](https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant/screenshots/nb-vagrant-status-management-window.png)
+
 ## Troubleshooting
 
 ### VM state is "aborted"
