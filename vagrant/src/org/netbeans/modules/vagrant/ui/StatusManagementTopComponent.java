@@ -42,20 +42,22 @@
 package org.netbeans.modules.vagrant.ui;
 
 import java.awt.Component;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JList;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
+import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectInformation;
 import org.netbeans.api.project.ProjectUtils;
-import org.netbeans.api.project.ui.OpenProjects;
 import org.netbeans.api.settings.ConvertAsProperties;
+import org.netbeans.modules.vagrant.VagrantStatus;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
@@ -63,6 +65,7 @@ import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.util.Exceptions;
+import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.Pair;
 import org.openide.util.RequestProcessor;
@@ -92,12 +95,12 @@ import org.openide.windows.TopComponent;
     "CTL_StatusManagementTopComponent=Vagrant Statuses",
     "HINT_StatusManagementTopComponent=This is a management window for Vagrant statuses"
 })
-public final class StatusManagementTopComponent extends TopComponent {
+public final class StatusManagementTopComponent extends TopComponent implements ChangeListener {
 
     private static final long serialVersionUID = -5325086456659205908L;
     private static final RequestProcessor RP = new RequestProcessor(StatusManagementTopComponent.class);
-    private final List<Pair<Project, String>> projectStatuses = new ArrayList<Pair<Project, String>>();
     private final DefaultListModel<Pair<Project, String>> model = new DefaultListModel<Pair<Project, String>>();
+    private final ProjectListCellRenderer cellRenderer = new ProjectListCellRenderer();
 
     public StatusManagementTopComponent() {
         initComponents();
@@ -352,21 +355,19 @@ public final class StatusManagementTopComponent extends TopComponent {
 
     @Override
     public void componentOpened() {
-        // reload project list 30 seconds later
-        // becase NetBeans may be busy (e.g. scaning projects)
-        RP.schedule(new Runnable() {
-
-            @Override
-            public void run() {
-                reload();
-            }
-        }, 30, TimeUnit.SECONDS);
+        VagrantStatus statuses = Lookup.getDefault().lookup(VagrantStatus.class);
+        if (statuses != null) {
+            statuses.addChangeListener(this);
+        }
     }
 
     @Override
     public void componentClosed() {
-        projectStatuses.clear();
         model.clear();
+        VagrantStatus status = Lookup.getDefault().lookup(VagrantStatus.class);
+        if (status != null) {
+            status.removeChangeListener(this);
+        }
     }
 
     void writeProperties(java.util.Properties p) {
@@ -403,7 +404,7 @@ public final class StatusManagementTopComponent extends TopComponent {
     /**
      * Reload project status list.
      */
-    private void reload() {
+    private synchronized void reload() {
         setAllButtonsEnabled(false);
         try {
             String vagrantPath = VagrantOptions.getInstance().getVagrantPath();
@@ -411,28 +412,14 @@ public final class StatusManagementTopComponent extends TopComponent {
                 return;
             }
 
-            projectStatuses.clear();
             model.clear();
-            Project[] projects = OpenProjects.getDefault().getOpenProjects();
-            for (Project project : projects) {
-                try {
-                    Vagrant vagrant = Vagrant.getDefault();
-                    List<String> statuses = vagrant.getStatuses(project);
-                    for (String status : statuses) {
-                        projectStatuses.add(Pair.of(project, status));
-                        break;
-                    }
-                } catch (InvalidVagrantExecutableException ex) {
-                    Exceptions.printStackTrace(ex);
-                }
+            VagrantStatus status = Lookup.getDefault().lookup(VagrantStatus.class);
+            if (status == null) {
+                return;
             }
-
-            // set list model
-            for (Pair<Project, String> projectStatus : projectStatuses) {
-                model.addElement(projectStatus);
-            }
-            projectList.setModel(model);
-            projectList.setCellRenderer(new ProjectListCellRenderer());
+            status.refresh();
+            setModel();
+            setCellRenderer();
         } finally {
             setAllButtonsEnabled(true);
         }
@@ -446,7 +433,7 @@ public final class StatusManagementTopComponent extends TopComponent {
      */
     private void reloadStatus(final Pair<Project, String> status, boolean runOnBackground) {
         if (!runOnBackground) {
-            reload();
+            reloadStatus(status);
             return;
         }
         RP.execute(new Runnable() {
@@ -463,30 +450,25 @@ public final class StatusManagementTopComponent extends TopComponent {
      *
      * @param status
      */
-    private void reloadStatus(Pair<Project, String> status) {
+    private synchronized void reloadStatus(Pair<Project, String> status) {
         if (status == null) {
             return;
         }
         setAllButtonsEnabled(false);
-        Project project = status.first();
-        if (project == null) {
-            return;
-        }
-        Vagrant vagrant;
         try {
-            vagrant = Vagrant.getDefault();
-            List<String> statuses = vagrant.getStatuses(project);
-            for (String s : statuses) {
-                int indexOfElement = model.indexOf(status);
-                if (indexOfElement != -1) {
-                    model.setElementAt(Pair.of(project, s), indexOfElement);
-                }
-                break;
+            Project project = status.first();
+            if (project == null) {
+                return;
             }
-        } catch (InvalidVagrantExecutableException ex) {
-            Exceptions.printStackTrace(ex);
+            VagrantStatus vagrantStatus = Lookup.getDefault().lookup(VagrantStatus.class);
+            if (vagrantStatus == null) {
+                return;
+            }
+            vagrantStatus.update(project);
+        } finally {
+            setAllButtonsEnabled(true);
         }
-        setAllButtonsEnabled(true);
+
     }
 
     /**
@@ -582,11 +564,56 @@ public final class StatusManagementTopComponent extends TopComponent {
             } catch (ExecutionException ex) {
                 Exceptions.printStackTrace(ex);
             }
-
-            // refresh view
-            reloadStatus(selectedStatus);
         } finally {
             setAllButtonsEnabled(true);
+        }
+    }
+
+    @Override
+    public synchronized void stateChanged(ChangeEvent e) {
+        final Object source = e.getSource();
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                if (source instanceof VagrantStatus) {
+                    VagrantStatus vagrantStatus = (VagrantStatus) source;
+                    Pair<Project, String> selectedValue = getSelectedStatus();
+                    Pair<Project, String> newSelectedValue = null;
+                    model.clear();
+                    for (Pair<Project, String> status : vagrantStatus.getAll()) {
+                        Project project = status.first();
+                        if (selectedValue != null) {
+                            Project selectedProject = selectedValue.first();
+                            if (selectedProject == project) {
+                                newSelectedValue = status;
+                            }
+                        }
+                        model.addElement(status);
+                    }
+
+                    // add model when project is open
+                    setModel();
+                    setCellRenderer();
+                    if (newSelectedValue != null) {
+                        projectList.setSelectedValue(newSelectedValue, true);
+                    }
+                }
+            }
+        });
+    }
+
+    private void setModel() {
+        ListModel<Pair<Project, String>> m = projectList.getModel();
+        if (model != m) {
+            projectList.setModel(model);
+        }
+    }
+
+    private void setCellRenderer() {
+        ListCellRenderer<? super Pair<Project, String>> cr = projectList.getCellRenderer();
+        if (cellRenderer != cr) {
+            projectList.setCellRenderer(cellRenderer);
         }
     }
 

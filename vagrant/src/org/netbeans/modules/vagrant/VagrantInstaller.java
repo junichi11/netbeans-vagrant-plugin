@@ -52,10 +52,12 @@ import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
 import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
+import org.netbeans.modules.vagrant.ui.VagrantStatusLineElement;
 import org.netbeans.modules.vagrant.ui.project.NetBeansClosingDialog;
 import org.netbeans.modules.vagrant.ui.project.ProjectClosedAction;
 import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.openide.modules.ModuleInstall;
+import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 
 public final class VagrantInstaller extends ModuleInstall {
@@ -65,6 +67,27 @@ public final class VagrantInstaller extends ModuleInstall {
 
     @Override
     public void restored() {
+        Lookup lookup = Lookup.getDefault();
+        VagrantStatusLineElement lineElement = lookup.lookup(VagrantStatusLineElement.class);
+        VagrantStatus vagrantStatus = lookup.lookup(VagrantStatus.class);
+        if (lineElement != null && vagrantStatus != null) {
+            vagrantStatus.addChangeListener(lineElement);
+        }
+    }
+
+    @Override
+    public void close() {
+        // clear status
+        Lookup lookup = Lookup.getDefault();
+        VagrantStatus vagrantStatus = lookup.lookup(VagrantStatus.class);
+        if (vagrantStatus == null) {
+            return;
+        }
+        VagrantStatusLineElement lineElement = lookup.lookup(VagrantStatusLineElement.class);
+        if (lineElement != null) {
+            vagrantStatus.removeChangeListener(lineElement);
+        }
+        vagrantStatus.clear();
     }
 
     /**

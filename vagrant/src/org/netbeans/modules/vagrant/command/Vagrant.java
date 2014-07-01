@@ -69,11 +69,11 @@ import org.netbeans.api.extexecution.input.InputProcessor;
 import org.netbeans.api.extexecution.input.InputProcessors;
 import org.netbeans.api.extexecution.input.LineProcessor;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.VagrantStatus;
 import org.netbeans.modules.vagrant.VagrantVersion;
 import org.netbeans.modules.vagrant.Versionable;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
 import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
-import org.netbeans.modules.vagrant.ui.VagrantStatusLineElement;
 import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.netbeans.modules.vagrant.utils.UiUtils;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
@@ -188,10 +188,6 @@ public final class Vagrant {
         String error = validate(vagrantPath);
         if (error == null) {
             Vagrant vagrant = new Vagrant(vagrantPath);
-            VagrantStatusLineElement statusLineElement = Lookup.getDefault().lookup(VagrantStatusLineElement.class);
-            if (statusLineElement != null) {
-                vagrant.addChangeListener(statusLineElement);
-            }
             return vagrant;
         }
         UiUtils.showOptions();
@@ -782,7 +778,7 @@ public final class Vagrant {
         this.title = title;
         additionalParameters(parameters);
 
-        return run(getExecutionDescriptor());
+        return run(getExecutionDescriptor(project));
     }
 
     /**
@@ -799,11 +795,11 @@ public final class Vagrant {
         return ExecutionService.newService(processBuilder, descriptor, title).run();
     }
 
-    private ExecutionDescriptor getExecutionDescriptor() {
+    private ExecutionDescriptor getExecutionDescriptor(Project project) {
         if (descriptor == null) {
             return DEFAULT_EXECUTION_DESCRIPTOR
                     .outProcessorFactory(getInfoProcessorFactory())
-                    .postExecution(new RunnableImpl())
+                    .postExecution(new RunnableImpl(project))
                     .preExecution(new RunnableImpl());
         }
         return descriptor;
@@ -1054,16 +1050,30 @@ public final class Vagrant {
 
     private class RunnableImpl implements Runnable {
 
+        private Project project;
+
         public RunnableImpl() {
+        }
+
+        public RunnableImpl(Project project) {
+            this.project = project;
         }
 
         @Override
         public void run() {
             fireChange();
+            if (project != null) {
+                VagrantStatus status = Lookup.getDefault().lookup(VagrantStatus.class);
+                if (status != null) {
+                    Project p = project;
+                    status.update(p);
+                }
+            }
+            project = null;
         }
     }
 
-    private class ProcessLaunch implements Callable<Process> {
+    private static class ProcessLaunch implements Callable<Process> {
 
         private final List<String> commands;
         private File workDir;

@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.VagrantStatus;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
@@ -53,6 +54,7 @@ import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.netbeans.spi.project.LookupProvider;
 import org.netbeans.spi.project.ui.ProjectOpenedHook;
 import org.openide.util.Lookup;
+import org.openide.util.RequestProcessor;
 import org.openide.util.lookup.Lookups;
 
 /**
@@ -72,6 +74,7 @@ import org.openide.util.lookup.Lookups;
 public class VagrantLookupProvider implements LookupProvider {
 
     private static final Logger LOGGER = Logger.getLogger(VagrantLookupProvider.class.getName());
+    private static final RequestProcessor RP = new RequestProcessor(VagrantLookupProvider.class);
 
     @Override
     public Lookup createAdditionalLookup(Lookup lookup) {
@@ -80,7 +83,16 @@ public class VagrantLookupProvider implements LookupProvider {
 
             @Override
             protected void projectOpened() {
-                // noop
+                final VagrantStatus vagrantStatus = getVagrantStatus();
+                if (vagrantStatus != null) {
+                    RP.execute(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            vagrantStatus.update(project);
+                        }
+                    });
+                }
             }
 
             @Override
@@ -103,6 +115,17 @@ public class VagrantLookupProvider implements LookupProvider {
                 } catch (InvalidVagrantExecutableException ex) {
                     LOGGER.log(Level.WARNING, ex.getMessage());
                 }
+
+                // remove status
+                VagrantStatus vagrantStatus = getVagrantStatus();
+                if (vagrantStatus != null) {
+                    vagrantStatus.remove(project);
+                }
+            }
+
+            private VagrantStatus getVagrantStatus() {
+                Lookup lookup = Lookup.getDefault();
+                return lookup.lookup(VagrantStatus.class);
             }
         });
     }
