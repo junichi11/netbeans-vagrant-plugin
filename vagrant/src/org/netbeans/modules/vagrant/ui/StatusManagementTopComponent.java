@@ -91,9 +91,9 @@ import org.openide.windows.TopComponent;
         preferredID = "StatusManagementTopComponent"
 )
 @Messages({
-    "CTL_StatusManagementAction=Vagrant Stauses",
-    "CTL_StatusManagementTopComponent=Vagrant Statuses",
-    "HINT_StatusManagementTopComponent=This is a management window for Vagrant statuses"
+    "CTL_StatusManagementAction=Vagrant Status",
+    "CTL_StatusManagementTopComponent=Vagrant Status",
+    "HINT_StatusManagementTopComponent=This is a management window for Vagrant status"
 })
 public final class StatusManagementTopComponent extends TopComponent implements ChangeListener {
 
