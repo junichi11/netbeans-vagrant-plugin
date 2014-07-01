@@ -64,6 +64,7 @@ import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
+import org.openide.util.Utilities;
 
 /**
  *
@@ -113,6 +114,9 @@ public class NetBeansClosingDialog extends JDialog {
                 doClose(Status.CANCEL);
             }
         });
+
+        // open the dialog on center of screen NetBeans exists on which NetBeans exists
+        setBounds(Utilities.findCenterBounds(getPreferredSize()));
     }
 
     /**

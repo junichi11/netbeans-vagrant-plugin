@@ -46,13 +46,9 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -63,23 +59,20 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
-import org.netbeans.modules.vagrant.command.Vagrant;
+import org.netbeans.modules.vagrant.VagrantStatus;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
-import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 import org.netbeans.modules.vagrant.ui.actions.VagrantAction;
 import org.netbeans.modules.vagrant.ui.actions.VagrantActionMenu;
 import org.netbeans.modules.vagrant.utils.FileUtils;
-import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.awt.StatusLineElementProvider;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
 import org.openide.util.NbBundle;
+import org.openide.util.Pair;
 import org.openide.util.RequestProcessor;
 import org.openide.util.Utilities;
 import org.openide.util.lookup.ServiceProvider;
@@ -95,7 +88,6 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
     private final JLabel statusLabel = new JLabel(""); // NOI18N
     private Project project;
     private final Map<Project, String> statusCache = new HashMap<Project, String>();
-    private final Set<Project> changedProjects = new HashSet<Project>();
     private boolean isShowStatus;
     private static final RequestProcessor RP = new RequestProcessor(VagrantStatusLineElement.class);
 
@@ -175,8 +167,7 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
         project = currentProject;
 
         // has Vagrantfile?
-        FileObject vagrantRoot = getVagrantRoot();
-        if (!VagrantUtils.hasVagrantfile(vagrantRoot)) {
+        if (!VagrantUtils.hasVagrantfile(project)) {
             setStatus("not created");
             return;
         }
@@ -259,42 +250,27 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
      * cache.
      * @return Vagrant status
      */
-    private String getStatus(Project project, boolean isForce) {
+    private String getStatus(final Project project, boolean isForce) {
         if (project == null) {
             return null;
         }
 
-        String status = statusCache.get(project);
-        if (status == null || isForce) {
-            status = loadStatuses(project);
-            statusCache.put(project, status);
-        }
-        return status;
-    }
+        if (isForce) {
+            final VagrantStatus vagrantStatus = Lookup.getDefault().lookup(VagrantStatus.class);
+            if (vagrantStatus != null) {
+                RP.execute(new Runnable() {
 
-    /**
-     * Load statuses.
-     *
-     * @param project Project
-     * @return all statuses. e.g. "default: running, default2: poweroff"
-     */
-    private String loadStatuses(Project project) {
-        StringBuilder sb = new StringBuilder();
-        try {
-            // run command
-            Vagrant vagrant = Vagrant.getDefault();
-            List<String> statuses = vagrant.getStatuses(project);
-            for (String status : statuses) {
-                sb.append(status).append(","); // NOI18N
+                    @Override
+                    public void run() {
+                        setStatus(Bundle.VagrantStatusLineElement_reload());
+                        vagrantStatus.update(project);
+                    }
+                });
             }
-            int length = sb.length();
-            if (length > 0) {
-                sb.deleteCharAt(length - 1);
-            }
-        } catch (InvalidVagrantExecutableException ex) {
-            // do nothing
+            return ""; // NOI18N
         }
-        return sb.toString();
+
+        return statusCache.get(project);
     }
 
     /**
@@ -306,34 +282,12 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
             return;
         }
 
-        // get vagrant root
-        FileObject vagrantRoot = getVagrantRoot();
-        if (!VagrantUtils.hasVagrantfile(vagrantRoot)) {
+        if (!VagrantUtils.hasVagrantfile(project)) {
             return;
         }
         setStatus(Bundle.VagrantStatusLineElement_reload());
         statusLabel.paintImmediately(statusLabel.getBounds());
         setStatus(getStatus(project, true));
-    }
-
-    /**
-     * Get vagrant root. If vagrant root path is not set, return project
-     * directory.
-     *
-     * @return vagrant root directory
-     */
-    private FileObject getVagrantRoot() {
-        assert project != null;
-        String vagrantPath = VagrantPreferences.getVagrantPath(project);
-        if (StringUtils.isEmpty(vagrantPath)) {
-            return project.getProjectDirectory();
-        }
-        File vagrantRoot = new File(vagrantPath);
-        if (!vagrantRoot.exists()) {
-            return project.getProjectDirectory();
-        }
-
-        return FileUtil.toFileObject(vagrantRoot);
     }
 
     /**
@@ -361,29 +315,18 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
 
     @Override
     public synchronized void stateChanged(ChangeEvent e) {
-        // post
-        if (changedProjects.size() > 0) {
-            for (Project p : changedProjects) {
-                String status = getStatus(p, true);
-                statusCache.put(p, status);
+        Object source = e.getSource();
+        if (source instanceof VagrantStatus) {
+            VagrantStatus vagrantStatus = (VagrantStatus) source;
+            statusCache.clear();
+            for (Pair<Project, String> status : vagrantStatus.getAll()) {
+                statusCache.put(status.first(), status.second());
             }
-            setStatus(getStatus(project, false));
-            changedProjects.clear();
-            return;
-        }
-
-        // pre
-        addChangedProject(project);
-    }
-
-    /**
-     * Add project that status will be changed.
-     *
-     * @param project Project
-     */
-    private void addChangedProject(Project project) {
-        if (project != null) {
-            changedProjects.add(project);
+            if (project != null) {
+                setStatus(statusCache.get(project));
+            } else {
+                clearStatusLabel();
+            }
         }
     }
 
