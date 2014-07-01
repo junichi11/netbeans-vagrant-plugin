@@ -255,10 +255,6 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
             return null;
         }
 
-        String status = statusCache.get(project);
-        if (status == null) {
-            return ""; // NOI18N
-        }
         if (isForce) {
             final VagrantStatus vagrantStatus = Lookup.getDefault().lookup(VagrantStatus.class);
             if (vagrantStatus != null) {
@@ -271,8 +267,10 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
                     }
                 });
             }
+            return ""; // NOI18N
         }
-        return ""; // NOI18N
+
+        return statusCache.get(project);
     }
 
     /**

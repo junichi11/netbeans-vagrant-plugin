@@ -121,6 +121,9 @@ public final class VagrantStatusImpl implements VagrantStatus {
         if (!isVagrantAvailable()) {
             return;
         }
+        // XXX may return FeatureProjectFactory$FeatureNonProject
+        // It's occurred if some projects is already opened when plugin is installed
+        // Workaround: reboot NetBeans or reopen projects
         OpenProjects projects = OpenProjects.getDefault();
         for (Project project : projects.getOpenProjects()) {
             add(project);
