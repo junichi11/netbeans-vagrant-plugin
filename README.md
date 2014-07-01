@@ -144,9 +144,13 @@ We can also run this action when we close the NetBeans. If you set `halt (ask)`,
 
 ## Status management window
 
-This window can show vagrant statuses of opened projects as list. You can also run commands (e.g. up, halt, ...) for a project.
+This window can show vagrant status of opened projects as list. You can also run commands (e.g. up, halt, ...) for a project.
 
-If you want to reopen the window after you close it, please check `Windows > Vagrant Statuses`.
+If you want to reopen the window after you close it, please check `Windows > Vagrant Status`.
+
+### Note
+
+Please reboot NetBeans or reopen projects if status is not shown at the statusbar when you install this plugin at first.
 
 ![Vagrant statuses](https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant/screenshots/nb-vagrant-status-management-window.png)
 

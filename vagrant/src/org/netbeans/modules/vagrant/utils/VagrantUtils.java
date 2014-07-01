@@ -41,14 +41,17 @@
  */
 package org.netbeans.modules.vagrant.utils;
 
+import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.ImageIcon;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.ImageUtilities;
 import org.openide.util.Utilities;
 
@@ -181,6 +184,44 @@ public final class VagrantUtils {
         }
 
         return !vagrantfile.isFolder();
+    }
+
+    /**
+     * Check whether a proejct has the Vagrantfile.
+     *
+     * @param project
+     * @return true if a project has the Vagrantfile, false otherwise.
+     */
+    public static boolean hasVagrantfile(Project project) {
+        if (project == null) {
+            return false;
+        }
+        FileObject vagrantRoot = getVagrantRoot(project);
+        if (vagrantRoot == null) {
+            return false;
+        }
+        return hasVagrantfile(vagrantRoot);
+    }
+
+    /**
+     * Get vagrant root directory. Usually, project directory. If user is
+     * setting relative path for vagrant root to project properties, detect its
+     * the directory.
+     *
+     * @param project
+     * @return
+     */
+    public static FileObject getVagrantRoot(Project project) {
+        String vagrantPath = VagrantPreferences.getVagrantPath(project);
+        if (StringUtils.isEmpty(vagrantPath)) {
+            return project.getProjectDirectory();
+        }
+        File vagrantRoot = new File(vagrantPath);
+        if (!vagrantRoot.exists()) {
+            return project.getProjectDirectory();
+        }
+
+        return FileUtil.toFileObject(vagrantRoot);
     }
 
     /**
