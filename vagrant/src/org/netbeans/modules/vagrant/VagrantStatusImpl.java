@@ -60,6 +60,7 @@ import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.util.ChangeSupport;
 import org.openide.util.Pair;
+import org.openide.util.RequestProcessor;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -80,6 +81,7 @@ public final class VagrantStatusImpl implements VagrantStatus {
             return info1.getDisplayName().compareTo(info2.getDisplayName());
         }
     });
+    private static final RequestProcessor RP = new RequestProcessor(VagrantStatusImpl.class);
     private static final Logger LOGGER = Logger.getLogger(VagrantStatusImpl.class.getName());
 
     @Override
@@ -124,11 +126,17 @@ public final class VagrantStatusImpl implements VagrantStatus {
         // XXX may return FeatureProjectFactory$FeatureNonProject
         // It's occurred if some projects is already opened when plugin is installed
         // Workaround: reboot NetBeans or reopen projects
-        OpenProjects projects = OpenProjects.getDefault();
-        for (Project project : projects.getOpenProjects()) {
-            add(project);
-        }
-        fireChange();
+        RP.post(new Runnable() {
+
+            @Override
+            public void run() {
+                OpenProjects projects = OpenProjects.getDefault();
+                for (Project project : projects.getOpenProjects()) {
+                    add(project);
+                }
+                fireChange();
+            }
+        });
     }
 
     @Override
@@ -136,9 +144,15 @@ public final class VagrantStatusImpl implements VagrantStatus {
         if (!isVagrantAvailable() || !VagrantUtils.hasVagrantfile(project)) {
             return;
         }
-        VAGRANT_STATUS.remove(project);
-        add(project);
-        fireChange();
+        RP.post(new Runnable() {
+
+            @Override
+            public void run() {
+                VAGRANT_STATUS.remove(project);
+                add(project);
+                fireChange();
+            }
+        });
     }
 
     @Override

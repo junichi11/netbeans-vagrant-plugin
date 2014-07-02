@@ -406,23 +406,19 @@ public final class StatusManagementTopComponent extends TopComponent implements 
      */
     private synchronized void reload() {
         setAllButtonsEnabled(false);
-        try {
-            String vagrantPath = VagrantOptions.getInstance().getVagrantPath();
-            if (StringUtils.isEmpty(vagrantPath)) {
-                return;
-            }
-
-            model.clear();
-            VagrantStatus status = Lookup.getDefault().lookup(VagrantStatus.class);
-            if (status == null) {
-                return;
-            }
-            status.refresh();
-            setModel();
-            setCellRenderer();
-        } finally {
-            setAllButtonsEnabled(true);
+        String vagrantPath = VagrantOptions.getInstance().getVagrantPath();
+        if (StringUtils.isEmpty(vagrantPath)) {
+            return;
         }
+
+        model.clear();
+        VagrantStatus status = Lookup.getDefault().lookup(VagrantStatus.class);
+        if (status == null) {
+            return;
+        }
+        status.refresh();
+        setModel();
+        setCellRenderer();
     }
 
     /**
@@ -455,20 +451,15 @@ public final class StatusManagementTopComponent extends TopComponent implements 
             return;
         }
         setAllButtonsEnabled(false);
-        try {
-            Project project = status.first();
-            if (project == null) {
-                return;
-            }
-            VagrantStatus vagrantStatus = Lookup.getDefault().lookup(VagrantStatus.class);
-            if (vagrantStatus == null) {
-                return;
-            }
-            vagrantStatus.update(project);
-        } finally {
-            setAllButtonsEnabled(true);
+        Project project = status.first();
+        if (project == null) {
+            return;
         }
-
+        VagrantStatus vagrantStatus = Lookup.getDefault().lookup(VagrantStatus.class);
+        if (vagrantStatus == null) {
+            return;
+        }
+        vagrantStatus.update(project);
     }
 
     /**
@@ -598,6 +589,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
                     if (newSelectedValue != null) {
                         projectList.setSelectedValue(newSelectedValue, true);
                     }
+                    setAllButtonsEnabled(true);
                 }
             }
         });
