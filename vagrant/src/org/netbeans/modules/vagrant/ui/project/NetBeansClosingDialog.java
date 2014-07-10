@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.DefaultListCellRenderer;
@@ -62,8 +63,10 @@ import org.netbeans.api.project.ProjectInformation;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
+import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
+import org.openide.util.Pair;
 import org.openide.util.Utilities;
 
 /**
@@ -81,6 +84,7 @@ public class NetBeansClosingDialog extends JDialog {
 
     private Status status = Status.NONE;
     private static final long serialVersionUID = -2989991020950300454L;
+    private static final Logger LOGGER = Logger.getLogger(NetBeansClosingDialog.class.getName());
 
     /**
      * Creates new form NetBeansClosingDialog
@@ -88,15 +92,15 @@ public class NetBeansClosingDialog extends JDialog {
     @NbBundle.Messages({
         "NetBeansClosingDialog.title=Confirmation: Vagrant status is running"
     })
-    public NetBeansClosingDialog(java.awt.Frame parent, boolean modal, List<Project> projects) {
+    public NetBeansClosingDialog(java.awt.Frame parent, boolean modal, List<Pair<Project, String>> status) {
         super(parent, modal);
         initComponents();
         setTitle(Bundle.NetBeansClosingDialog_title());
 
         // add projects to list
-        DefaultListModel<Project> model = new DefaultListModel<Project>();
-        for (Project project : projects) {
-            model.addElement(project);
+        DefaultListModel<Pair<Project, String>> model = new DefaultListModel<Pair<Project, String>>();
+        for (Pair<Project, String> s : status) {
+            model.addElement(s);
         }
         projectList.setModel(model);
         projectList.setCellRenderer(new ProjectListCellRenderer());
@@ -138,7 +142,7 @@ public class NetBeansClosingDialog extends JDialog {
         shutdownButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        projectList = new javax.swing.JList();
+        projectList = new javax.swing.JList<Pair<Project, String>>();
         haltButton = new javax.swing.JButton();
         haltAllButton = new javax.swing.JButton();
 
@@ -231,24 +235,25 @@ public class NetBeansClosingDialog extends JDialog {
     }//GEN-LAST:event_closeDialog
 
     private void haltButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_haltButtonActionPerformed
-        List<Project> selectedProjects = projectList.getSelectedValuesList();
+        List<Pair<Project, String>> selectedProjects = projectList.getSelectedValuesList();
         halt(selectedProjects);
     }//GEN-LAST:event_haltButtonActionPerformed
 
     private void haltAllButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_haltAllButtonActionPerformed
-        DefaultListModel<Project> model = (DefaultListModel<Project>) projectList.getModel();
-        Enumeration<Project> elements = model.elements();
-        ArrayList<Project> projects = Collections.list(elements);
+        DefaultListModel<Pair<Project, String>> model = (DefaultListModel<Pair<Project, String>>) projectList.getModel();
+        Enumeration<Pair<Project, String>> elements = model.elements();
+        ArrayList<Pair<Project, String>> projects = Collections.list(elements);
         halt(projects);
     }//GEN-LAST:event_haltAllButtonActionPerformed
 
-    private void halt(List<Project> projects) {
-        for (Project project : projects) {
+    private void halt(List<Pair<Project, String>> status) {
+        for (Pair<Project, String> s : status) {
             try {
                 Vagrant vagrant = Vagrant.getDefault();
-                ProjectClosedAction.HALT.run(project, vagrant);
-                DefaultListModel<Project> model = (DefaultListModel<Project>) projectList.getModel();
-                model.removeElement(project);
+                String name = VagrantUtils.getNameFromStatus(s.second());
+                vagrant.halt(s.first(), name);
+                DefaultListModel<Pair<Project, String>> model = (DefaultListModel<Pair<Project, String>>) projectList.getModel();
+                model.removeElement(s);
             } catch (InvalidVagrantExecutableException ex) {
                 Exceptions.printStackTrace(ex);
             }
@@ -266,7 +271,7 @@ public class NetBeansClosingDialog extends JDialog {
     private javax.swing.JButton haltAllButton;
     private javax.swing.JButton haltButton;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JList projectList;
+    private javax.swing.JList<Pair<Project, String>> projectList;
     private javax.swing.JButton shutdownButton;
     // End of variables declaration//GEN-END:variables
 
@@ -277,16 +282,24 @@ public class NetBeansClosingDialog extends JDialog {
 
         @Override
         public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            Project project = (Project) value;
-            ProjectInformation information = ProjectUtils.getInformation(project);
-            setText(information.getDisplayName());
-            setIcon(information.getIcon());
-            if (isSelected) {
-                setBackground(list.getSelectionBackground());
-                setForeground(list.getSelectionForeground());
-            } else {
-                setBackground(list.getBackground());
-                setForeground(list.getForeground());
+            if (value instanceof Pair) {
+                Pair<?, ?> pair = (Pair<?, ?>) value;
+                Object first = pair.first();
+                Object second = pair.second();
+                if (first instanceof Project && second instanceof String) {
+                    Project project = (Project) first;
+                    String status = (String) second;
+                    ProjectInformation information = ProjectUtils.getInformation(project);
+                    setText(String.format("%s : %s", information.getDisplayName(), status));
+                    setIcon(information.getIcon());
+                    if (isSelected) {
+                        setBackground(list.getSelectionBackground());
+                        setForeground(list.getSelectionForeground());
+                    } else {
+                        setBackground(list.getBackground());
+                        setForeground(list.getForeground());
+                    }
+                }
             }
             return this;
         }
