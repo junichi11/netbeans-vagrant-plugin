@@ -221,4 +221,17 @@ public class VagrantUtilsTest extends NbTestCase {
         hasLowercaseParent.delete();
         hasVagrantFileParent.delete();
     }
+
+    /**
+     * Test of getBoxName method, of class VagrantUtils.
+     */
+    @Test
+    public void testGetNameFromStatus() {
+        assertEquals("default", VagrantUtils.getNameFromStatus("default: running"));
+        assertEquals("default", VagrantUtils.getNameFromStatus("default:running"));
+        assertEquals("default", VagrantUtils.getNameFromStatus("default :running"));
+        assertEquals("default", VagrantUtils.getNameFromStatus("default :running : something"));
+        assertEquals("", VagrantUtils.getNameFromStatus("default"));
+        assertEquals("", VagrantUtils.getNameFromStatus(null));
+    }
 }

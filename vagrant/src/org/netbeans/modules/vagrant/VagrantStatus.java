@@ -64,9 +64,9 @@ public interface VagrantStatus {
      * Get status of a project.
      *
      * @param project
-     * @return status of a project. If status doesn't exist, empty string.
+     * @return status of a project. If status doesn't exist, empty list.
      */
-    public String get(Project project);
+    public List<String> get(Project project);
 
     /**
      * Remove status of a project.

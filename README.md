@@ -10,8 +10,8 @@ Please check the following site:
 
 ## Requirements
 
-- NetBeans 7.4 or newer
-- Vagrant 1.5.0 or newer
+- NetBeans 8.0 or newer
+- Vagrant 1.6.0 or newer
 
 ## Install
 
@@ -128,7 +128,7 @@ Will take a little time when you access files or directories for your project at
 
 ![syntax highlight](https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant/screenshots/nb-vagrant-syntax-highlight-vagrantfile.png)
 
-Need Ruby plugin (http://plugins.netbeans.org/plugin/38549/ruby-and-rails)
+Require Ruby plugin (http://plugins.netbeans.org/plugin/38549/ruby-and-rails)
 
 ## Action when project is closed
 
@@ -145,6 +145,7 @@ We can also run this action when we close the NetBeans. If you set `halt (ask)`,
 ## Status management window
 
 This window can show vagrant status of opened projects as list. You can also run commands (e.g. up, halt, ...) for a project.
+Also show all machine status if you are using multiple machines.
 
 If you want to reopen the window after you close it, please check `Windows > Vagrant Status`.
 

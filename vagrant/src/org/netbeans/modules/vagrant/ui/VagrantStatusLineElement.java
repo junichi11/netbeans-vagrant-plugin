@@ -320,7 +320,13 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
             VagrantStatus vagrantStatus = (VagrantStatus) source;
             statusCache.clear();
             for (Pair<Project, String> status : vagrantStatus.getAll()) {
-                statusCache.put(status.first(), status.second());
+                Project p = status.first();
+                String s = status.second();
+                String existingStatus = statusCache.get(p);
+                if (existingStatus != null) {
+                    s = String.format("%s, %s", existingStatus, s); // NOI18N
+                }
+                statusCache.put(p, s);
             }
             if (project != null) {
                 setStatus(statusCache.get(project));

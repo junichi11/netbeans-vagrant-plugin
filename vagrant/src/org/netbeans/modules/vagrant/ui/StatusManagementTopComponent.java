@@ -42,8 +42,11 @@
 package org.netbeans.modules.vagrant.ui;
 
 import java.awt.Component;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -62,6 +65,7 @@ import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
 import org.netbeans.modules.vagrant.utils.StringUtils;
+import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.util.Exceptions;
@@ -101,6 +105,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
     private static final RequestProcessor RP = new RequestProcessor(StatusManagementTopComponent.class);
     private final DefaultListModel<Pair<Project, String>> model = new DefaultListModel<Pair<Project, String>>();
     private final ProjectListCellRenderer cellRenderer = new ProjectListCellRenderer();
+    private static final Logger LOGGER = Logger.getLogger(StatusManagementTopComponent.class.getName());
 
     public StatusManagementTopComponent() {
         initComponents();
@@ -523,37 +528,46 @@ public final class StatusManagementTopComponent extends TopComponent implements 
             if (selectedProject == null || StringUtils.isEmpty(command)) {
                 return;
             }
+            // status
+            String status = selectedStatus.second();
+            String name = VagrantUtils.getNameFromStatus(status);
+            if (name.isEmpty()) {
+                LOGGER.log(Level.WARNING, "machine name is empty.");
+                return;
+            }
             try {
                 Vagrant vagrant = Vagrant.getDefault();
                 Future<Integer> result = null;
                 if (command.equals(Vagrant.UP_COMMAND)) {
-                    result = vagrant.up(selectedProject);
+                    result = vagrant.up(selectedProject, name);
                 } else if (command.equals(Vagrant.RELOAD_COMMAND)) {
-                    result = vagrant.reload(selectedProject);
+                    result = vagrant.reload(selectedProject, name);
                 } else if (command.equals(Vagrant.SUSPEND_COMMAND)) {
-                    result = vagrant.suspend(selectedProject);
+                    result = vagrant.suspend(selectedProject, name);
                 } else if (command.equals(Vagrant.RESUME_COMMAND)) {
-                    result = vagrant.resume(selectedProject);
+                    result = vagrant.resume(selectedProject, name);
                 } else if (command.equals(Vagrant.HALT_COMMAND)) {
-                    result = vagrant.halt(selectedProject);
+                    result = vagrant.halt(selectedProject, name);
                 } else if (command.equals(Vagrant.DESTROY_COMMAND)) {
-                    result = vagrant.destroy(selectedProject);
+                    result = vagrant.destroy(selectedProject, name);
                 } else if (command.equals(Vagrant.STATUS_COMMAND)) {
-                    result = vagrant.status(selectedProject);
+                    result = vagrant.status(selectedProject, name);
                 } else if (command.equals(Vagrant.SHARE_COMMAND)) {
                     result = vagrant.share(selectedProject);
                 } else if (command.equals(Vagrant.PROVISION_COMMAND)) {
-                    result = vagrant.provisiton(selectedProject);
+                    result = vagrant.provisiton(selectedProject, name);
                 }
                 if (result != null) {
                     result.get();
                 }
             } catch (InvalidVagrantExecutableException ex) {
                 Exceptions.printStackTrace(ex);
+            } catch (CancellationException ex) {
+                LOGGER.log(Level.WARNING, "command is canceled");
             } catch (InterruptedException ex) {
-                Exceptions.printStackTrace(ex);
+                LOGGER.log(Level.WARNING, ex.getMessage());
             } catch (ExecutionException ex) {
-                Exceptions.printStackTrace(ex);
+                LOGGER.log(Level.WARNING, ex.getMessage());
             }
         } finally {
             setAllButtonsEnabled(true);
@@ -616,17 +630,25 @@ public final class StatusManagementTopComponent extends TopComponent implements 
 
         @Override
         public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            Pair<Project, String> projectStatus = (Pair<Project, String>) value;
-            ProjectInformation information = ProjectUtils.getInformation(projectStatus.first());
-            String status = String.format("%s : %s", information.getDisplayName(), projectStatus.second()); // NOI18N
-            setText(status);
-            setIcon(information.getIcon());
-            if (isSelected) {
-                setBackground(list.getSelectionBackground());
-                setForeground(list.getSelectionForeground());
-            } else {
-                setBackground(list.getBackground());
-                setForeground(list.getForeground());
+            if (value instanceof Pair) {
+                Pair<?, ?> pair = (Pair<?, ?>) value;
+                Object first = pair.first();
+                Object second = pair.second();
+                if (first instanceof Project && second instanceof String) {
+                    Project project = (Project) first;
+                    String status = (String) second;
+                    ProjectInformation information = ProjectUtils.getInformation(project);
+                    String text = String.format("%s : %s", information.getDisplayName(), status); // NOI18N
+                    setText(text);
+                    setIcon(information.getIcon());
+                    if (isSelected) {
+                        setBackground(list.getSelectionBackground());
+                        setForeground(list.getSelectionForeground());
+                    } else {
+                        setBackground(list.getBackground());
+                        setForeground(list.getForeground());
+                    }
+                }
             }
             return this;
         }
