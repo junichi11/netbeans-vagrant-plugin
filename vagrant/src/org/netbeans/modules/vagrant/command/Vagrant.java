@@ -341,6 +341,10 @@ public final class Vagrant {
         return runCommand(project, STATUS_COMMAND, Bundle.Vagrant_run_status());
     }
 
+    public Future<Integer> status(Project project, String name) {
+        return runCommand(project, STATUS_COMMAND, Bundle.Vagrant_run_status(), Arrays.asList(name));
+    }
+
     @NbBundle.Messages("Vagrant.run.ssh=Vagrant (ssh)")
     public Future<Integer> ssh(Project project) {
         return runCommand(project, SSH_COMMAND, Bundle.Vagrant_run_ssh());

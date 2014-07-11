@@ -551,7 +551,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
                 } else if (command.equals(Vagrant.DESTROY_COMMAND)) {
                     result = vagrant.destroy(selectedProject, name);
                 } else if (command.equals(Vagrant.STATUS_COMMAND)) {
-                    result = vagrant.status(selectedProject);
+                    result = vagrant.status(selectedProject, name);
                 } else if (command.equals(Vagrant.SHARE_COMMAND)) {
                     result = vagrant.share(selectedProject);
                 } else if (command.equals(Vagrant.PROVISION_COMMAND)) {
