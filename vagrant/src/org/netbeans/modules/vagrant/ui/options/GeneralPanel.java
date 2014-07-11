@@ -94,6 +94,14 @@ public final class GeneralPanel extends VagrantCategoryPanel {
         showStatusCheckBox.setSelected(show);
     }
 
+    private boolean isCachedStatusOnClose() {
+        return useCachedStatusCheckBox.isSelected();
+    }
+
+    private void setCachedStatusOnClose(boolean isCached) {
+        useCachedStatusCheckBox.setSelected(isCached);
+    }
+
     private void setVersion() {
         setVersion(""); // NOI18N
         versionLabel.setVisible(false);
@@ -138,6 +146,7 @@ public final class GeneralPanel extends VagrantCategoryPanel {
         }
         getOptions().setVagrantPath(vagrantPath);
         getOptions().setShowStatus(isShowStatus());
+        getOptions().setCachedStatusOnClose(isCachedStatusOnClose());
         VagrantStatusLineElement statusLineElement = Lookup.getDefault().lookup(VagrantStatusLineElement.class);
         if (statusLineElement != null) {
             statusLineElement.setShowStatus(isShowStatus());
@@ -149,6 +158,7 @@ public final class GeneralPanel extends VagrantCategoryPanel {
     void load() {
         setVagrantPath(getOptions().getVagrantPath());
         setShowStatus(getOptions().isShowStatus());
+        setCachedStatusOnClose(getOptions().isCachedStatusOnClose());
     }
 
     @Override
@@ -192,6 +202,7 @@ public final class GeneralPanel extends VagrantCategoryPanel {
         learnMoreVagranLabel = new javax.swing.JLabel();
         versionLabel = new javax.swing.JLabel();
         showStatusCheckBox = new javax.swing.JCheckBox();
+        useCachedStatusCheckBox = new javax.swing.JCheckBox();
 
         org.openide.awt.Mnemonics.setLocalizedText(vagrantPathLabel, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.vagrantPathLabel.text")); // NOI18N
 
@@ -234,6 +245,8 @@ public final class GeneralPanel extends VagrantCategoryPanel {
 
         org.openide.awt.Mnemonics.setLocalizedText(showStatusCheckBox, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.showStatusCheckBox.text")); // NOI18N
 
+        org.openide.awt.Mnemonics.setLocalizedText(useCachedStatusCheckBox, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.useCachedStatusCheckBox.text")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -264,7 +277,8 @@ public final class GeneralPanel extends VagrantCategoryPanel {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(versionLabel)
-                            .addComponent(showStatusCheckBox))
+                            .addComponent(showStatusCheckBox)
+                            .addComponent(useCachedStatusCheckBox))
                         .addGap(0, 0, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
@@ -281,6 +295,8 @@ public final class GeneralPanel extends VagrantCategoryPanel {
                 .addComponent(versionLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(showStatusCheckBox)
+                .addGap(7, 7, 7)
+                .addComponent(useCachedStatusCheckBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(noteLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -367,6 +383,7 @@ public final class GeneralPanel extends VagrantCategoryPanel {
     private javax.swing.JLabel noteLabel;
     private javax.swing.JButton searchButton;
     private javax.swing.JCheckBox showStatusCheckBox;
+    private javax.swing.JCheckBox useCachedStatusCheckBox;
     private javax.swing.JLabel vagrantPathLabel;
     private javax.swing.JTextField vagrantPathTextField;
     private javax.swing.JLabel versionLabel;

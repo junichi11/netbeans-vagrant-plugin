@@ -72,7 +72,7 @@ import org.openide.util.lookup.ServiceProvider;
 public final class VagrantStatusImpl implements VagrantStatus {
 
     private final ChangeSupport changeSupport = new ChangeSupport(this);
-    private static final Map<Project, Pair<Project, String>> VAGRANT_STATUS = new TreeMap<Project, Pair<Project, String>>(new Comparator<Project>() {
+    private static final Map<Project, List<Pair<Project, String>>> VAGRANT_STATUS = new TreeMap<Project, List<Pair<Project, String>>>(new Comparator<Project>() {
 
         @Override
         public int compare(Project p1, Project p2) {
@@ -86,26 +86,33 @@ public final class VagrantStatusImpl implements VagrantStatus {
 
     @Override
     public synchronized List<Pair<Project, String>> getAll() {
-        return new ArrayList<Pair<Project, String>>(VAGRANT_STATUS.values());
+        ArrayList<Pair<Project, String>> allList = new ArrayList<Pair<Project, String>>();
+        for (List<Pair<Project, String>> list : VAGRANT_STATUS.values()) {
+            allList.addAll(list);
+        }
+        return allList;
     }
 
     @Override
-    public synchronized String get(Project project) {
-        Pair<Project, String> status = VAGRANT_STATUS.get(project);
-        if (status == null) {
-            return ""; // NOI18N
+    public synchronized List<String> get(Project project) {
+        ArrayList<String> allStatus = new ArrayList<String>();
+        List<Pair<Project, String>> statusList = VAGRANT_STATUS.get(project);
+        for (Pair<Project, String> status : statusList) {
+            allStatus.add(status.second());
         }
-        return status.second();
+        return allStatus;
     }
 
     private synchronized void add(Project project) {
         try {
             Vagrant vagrant = Vagrant.getDefault();
-            List<String> statuses = vagrant.getStatuses(project);
-            for (String status : statuses) {
-                VAGRANT_STATUS.put(project, Pair.of(project, status));
-                break;
+            List<String> status = vagrant.getStatuses(project);
+            ArrayList<Pair<Project, String>> list = new ArrayList<Pair<Project, String>>(status.size());
+            for (String s : status) {
+                Pair<Project, String> pair = Pair.of(project, s);
+                list.add(pair);
             }
+            VAGRANT_STATUS.put(project, list);
         } catch (InvalidVagrantExecutableException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }

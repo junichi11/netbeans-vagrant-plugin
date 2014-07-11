@@ -56,9 +56,11 @@ import org.netbeans.modules.vagrant.ui.VagrantStatusLineElement;
 import org.netbeans.modules.vagrant.ui.project.NetBeansClosingDialog;
 import org.netbeans.modules.vagrant.ui.project.ProjectClosedAction;
 import org.netbeans.modules.vagrant.utils.StringUtils;
+import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.modules.ModuleInstall;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
+import org.openide.util.Pair;
 
 public final class VagrantInstaller extends ModuleInstall {
 
@@ -106,42 +108,74 @@ public final class VagrantInstaller extends ModuleInstall {
             return Status.getInstance().setShutdown();
         }
 
-        // get opened projects
-        OpenProjects projects = OpenProjects.getDefault();
-        List<Project> runningProjects = new ArrayList<Project>();
-        for (Project project : projects.getOpenProjects()) {
-            try {
-                Vagrant vagrant = Vagrant.getDefault();
-                List<String> statuses = vagrant.getStatuses(project);
-                // status confirmation
-                for (String status : statuses) {
-                    if (status.contains("running")) { // NOI18N
-                        ProjectClosedAction closedAction = VagrantPreferences.getProjectClosedAction(project);
-                        if (closedAction == ProjectClosedAction.HALT_ASK) {
-                            runningProjects.add(project);
-                            continue;
-                        }
-                        closedAction.run(project, vagrant);
-                        break;
-                    }
-                }
-            } catch (InvalidVagrantExecutableException ex) {
-                LOGGER.log(Level.WARNING, ex.getMessage());
-            }
-        }
+        ArrayList<Pair<Project, String>> runningProjects = new ArrayList<Pair<Project, String>>();
+        ArrayList<Pair<Project, String>> haltAskProjects = new ArrayList<Pair<Project, String>>();
+        getRunningProejcts(haltAskProjects, runningProjects);
 
         // halt-ask?
-        if (!runningProjects.isEmpty()) {
+        if (!haltAskProjects.isEmpty()) {
             // show confirmation dialog
-            NetBeansClosingDialog closingDialog = new NetBeansClosingDialog(new JFrame(), true, runningProjects);
+            NetBeansClosingDialog closingDialog = new NetBeansClosingDialog(new JFrame(), true, haltAskProjects);
             closingDialog.setVisible(true);
             if (closingDialog.getStatus() == NetBeansClosingDialog.Status.SHUTDOWN) {
+                haltProjects(runningProjects);
                 return Status.getInstance().setShutdown();
             }
             return false;
         }
 
+        haltProjects(runningProjects);
         return Status.getInstance().setShutdown();
+    }
+
+    private void getRunningProejcts(List<Pair<Project, String>> haltAskProjects, List<Pair<Project, String>> runningProjects) {
+        if (VagrantOptions.getInstance().isCachedStatusOnClose()) {
+            VagrantStatus vagrantStatus = Lookup.getDefault().lookup(VagrantStatus.class);
+            if (vagrantStatus != null) {
+                for (Pair<Project, String> pair : vagrantStatus.getAll()) {
+                    separateRunningProjects(pair, haltAskProjects, runningProjects);
+                }
+            }
+        } else {
+            // get opened projects
+            OpenProjects projects = OpenProjects.getDefault();
+            for (Project project : projects.getOpenProjects()) {
+                try {
+                    Vagrant vagrant = Vagrant.getDefault();
+                    List<String> statuses = vagrant.getStatuses(project);
+                    // status confirmation
+                    for (String status : statuses) {
+                        separateRunningProjects(Pair.of(project, status), haltAskProjects, runningProjects);
+                        break;
+                    }
+                } catch (InvalidVagrantExecutableException ex) {
+                    LOGGER.log(Level.WARNING, ex.getMessage());
+                }
+            }
+        }
+    }
+
+    private void separateRunningProjects(Pair<Project, String> status, List<Pair<Project, String>> haltAskProjects, List<Pair<Project, String>> runningProjects) {
+        if (status.second().contains("running")) { // NOI18N
+            ProjectClosedAction closedAction = VagrantPreferences.getProjectClosedAction(status.first());
+            if (closedAction == ProjectClosedAction.HALT_ASK) {
+                haltAskProjects.add(status);
+            } else {
+                runningProjects.add(status);
+            }
+        }
+    }
+
+    private void haltProjects(List<Pair<Project, String>> runningProjects) {
+        for (Pair<Project, String> status : runningProjects) {
+            try {
+                Vagrant vagrant = Vagrant.getDefault();
+                String name = VagrantUtils.getNameFromStatus(status.second());
+                vagrant.halt(status.first(), name);
+            } catch (InvalidVagrantExecutableException ex) {
+                LOGGER.log(Level.WARNING, ex.getMessage());
+            }
+        }
     }
 
     //~ Inner class

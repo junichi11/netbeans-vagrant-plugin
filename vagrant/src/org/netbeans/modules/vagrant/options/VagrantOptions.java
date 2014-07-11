@@ -56,6 +56,7 @@ public final class VagrantOptions {
     private static final String VAGRANT_PATH = "vagrant.path"; // NOI18N
     private static final String BOXES_URL = "boxes.url"; // NOI18N
     private static final String SHOW_STATUS = "show.status"; // NOI18N
+    private static final String CACHED_STATUS = "cached.status"; // NOI18N
     private static final String ACTIONS_SHARE_OPEN_URL = "actions.share.open.url"; // NOI18N
     private static final String ACTIONS_SHARE_COPY_URL = "actions.share.copy.url"; // NOI18N
 
@@ -88,6 +89,14 @@ public final class VagrantOptions {
 
     public void setShowStatus(boolean show) {
         getPreferences().putBoolean(SHOW_STATUS, show);
+    }
+
+    public boolean isCachedStatusOnClose() {
+        return getPreferences().getBoolean(CACHED_STATUS, true);
+    }
+
+    public void setCachedStatusOnClose(boolean isCached) {
+        getPreferences().putBoolean(CACHED_STATUS, isCached);
     }
 
     public boolean isShareOpenUrl() {

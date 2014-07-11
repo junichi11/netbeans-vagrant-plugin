@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -290,9 +291,17 @@ public final class Vagrant {
         return runCommand(project, UP_COMMAND, Bundle.Vagrant_run_up());
     }
 
+    public Future<Integer> up(Project project, String name) {
+        return runCommand(project, UP_COMMAND, Bundle.Vagrant_run_up(), Arrays.asList(name));
+    }
+
     @NbBundle.Messages("Vagrant.run.reload=Vagrant (reload)")
     public Future<Integer> reload(Project project) {
         return runCommand(project, RELOAD_COMMAND, Bundle.Vagrant_run_reload());
+    }
+
+    public Future<Integer> reload(Project project, String name) {
+        return runCommand(project, RELOAD_COMMAND, Bundle.Vagrant_run_reload(), Arrays.asList(name));
     }
 
     @NbBundle.Messages("Vagrant.run.halt=Vagrant (halt)")
@@ -300,14 +309,26 @@ public final class Vagrant {
         return runCommand(project, HALT_COMMAND, Bundle.Vagrant_run_halt());
     }
 
+    public Future<Integer> halt(Project project, String name) {
+        return runCommand(project, HALT_COMMAND, Bundle.Vagrant_run_halt(), Arrays.asList(name));
+    }
+
     @NbBundle.Messages("Vagrant.run.suspend=Vagrant (suspend)")
     public Future<Integer> suspend(Project project) {
         return runCommand(project, SUSPEND_COMMAND, Bundle.Vagrant_run_suspend());
     }
 
+    public Future<Integer> suspend(Project project, String name) {
+        return runCommand(project, SUSPEND_COMMAND, Bundle.Vagrant_run_suspend(), Arrays.asList(name));
+    }
+
     @NbBundle.Messages("Vagrant.run.resume=Vagrant (resume)")
     public Future<Integer> resume(Project project) {
         return runCommand(project, RESUME_COMMAND, Bundle.Vagrant_run_resume());
+    }
+
+    public Future<Integer> resume(Project project, String name) {
+        return runCommand(project, RESUME_COMMAND, Bundle.Vagrant_run_resume(), Arrays.asList(name));
     }
 
     @NbBundle.Messages("Vagrant.run.share=Vagrant (share)")
@@ -320,9 +341,17 @@ public final class Vagrant {
         return runCommand(project, STATUS_COMMAND, Bundle.Vagrant_run_status());
     }
 
+    public Future<Integer> status(Project project, String name) {
+        return runCommand(project, STATUS_COMMAND, Bundle.Vagrant_run_status(), Arrays.asList(name));
+    }
+
     @NbBundle.Messages("Vagrant.run.ssh=Vagrant (ssh)")
     public Future<Integer> ssh(Project project) {
         return runCommand(project, SSH_COMMAND, Bundle.Vagrant_run_ssh());
+    }
+
+    public Future<Integer> ssh(Project project, String name) {
+        return runCommand(project, SSH_COMMAND, Bundle.Vagrant_run_ssh(), Arrays.asList(name));
     }
 
     @NbBundle.Messages("Vagrant.run.ssh.config=Vagrant (ssh-config)")
@@ -336,9 +365,18 @@ public final class Vagrant {
         return runCommand(project, DESTROY_COMMAND, Bundle.Vagrant_run_destroy(), Collections.singletonList(FORCE_PARAM));
     }
 
+    public Future<Integer> destroy(Project project, String name) {
+        // require a TTY
+        return runCommand(project, DESTROY_COMMAND, Bundle.Vagrant_run_destroy(), Arrays.asList(FORCE_PARAM, name));
+    }
+
     @NbBundle.Messages("Vagrant.run.provision=Vagrant (provision)")
     public Future<Integer> provisiton(Project project) {
         return runCommand(project, PROVISION_COMMAND, Bundle.Vagrant_run_provision());
+    }
+
+    public Future<Integer> provisiton(Project project, String name) {
+        return runCommand(project, PROVISION_COMMAND, Bundle.Vagrant_run_provision(), Arrays.asList(name));
     }
 
     @NbBundle.Messages("Vagrant.run.version=Vagrant (--version)")
