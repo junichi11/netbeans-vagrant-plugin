@@ -125,4 +125,20 @@ public class RunCommandHistoryTest extends NbTestCase {
         assertEquals(2, history.getCommands().size());
     }
 
+    /**
+     * Test of add method, of class RunCommandHistory.
+     */
+    @Test
+    public void testAddForOrdering() {
+        RunCommandHistory history = new RunCommandHistory();
+        history.add(new CommandHistory.Command("halt", Collections.<String>emptyList()));
+        history.add(new CommandHistory.Command("up", Arrays.asList("default")));
+        history.add(new CommandHistory.Command("resume", Collections.<String>emptyList()));
+        history.add(new CommandHistory.Command("up", Arrays.asList("default2")));
+        history.add(new CommandHistory.Command("up", Arrays.asList("default")));
+
+        assertEquals(4, history.getCommands().size());
+        assertEquals(new CommandHistory.Command("up", Arrays.asList("default")), history.getCommands().get(0));
+    }
+
 }
