@@ -47,6 +47,7 @@ import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.VagrantStatus;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
+import org.netbeans.modules.vagrant.command.RunCommandHistory;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
 import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
@@ -121,6 +122,9 @@ public class VagrantLookupProvider implements LookupProvider {
                 if (vagrantStatus != null) {
                     vagrantStatus.remove(project);
                 }
+
+                // remove command history
+                RunCommandHistory.Factory.remove(project);
             }
 
             private VagrantStatus getVagrantStatus() {
