@@ -41,10 +41,14 @@
  */
 package org.netbeans.modules.vagrant.preferences;
 
+import com.google.gson.Gson;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
+import org.netbeans.modules.vagrant.command.RunCommandHistory;
 import org.netbeans.modules.vagrant.ui.project.ProjectClosedAction;
+import org.openide.util.Exceptions;
 
 /**
  *
@@ -54,6 +58,8 @@ public final class VagrantPreferences {
 
     private static final String VAGRANT_PATH = "vagrant-path"; // NOI18N
     private static final String PROJECT_CLOSED_ACTION = "project-closed-action"; // NOI18N
+    private static final String SAVE_RUN_COMMAND_HISTORIES = "save-run-command-histories"; // NOI18N
+    private static final String RUN_COMMAND_HISTORY = "run-command-history"; // NOI18N
 
     private VagrantPreferences() {
     }
@@ -79,7 +85,50 @@ public final class VagrantPreferences {
         getPreferences(project).put(PROJECT_CLOSED_ACTION, action.toString());
     }
 
+    public static boolean isSaveRunCommandHistoriesOnClose(Project project) {
+        return getPreferences(project).getBoolean(SAVE_RUN_COMMAND_HISTORIES, false);
+    }
+
+    public static void setSaveRunCommandHistoriesOnClose(Project project, boolean isSave) {
+        getPreferences(project).putBoolean(SAVE_RUN_COMMAND_HISTORIES, isSave);
+    }
+
+    public static RunCommandHistory getRunCommandHistory(Project project) {
+        String json = getPreferences(project, false).get(RUN_COMMAND_HISTORY, null);
+        if (json == null) {
+            return null;
+        }
+        Gson gson = new Gson();
+        return gson.fromJson(json, RunCommandHistory.class);
+    }
+
+    public static void setRunCommandHistory(Project project, RunCommandHistory history, boolean isFlush) {
+        if (history == null) {
+            return;
+        }
+        Gson gson = new Gson();
+        String json = gson.toJson(history, RunCommandHistory.class);
+        getPreferences(project, false).put(RUN_COMMAND_HISTORY, json);
+        if (isFlush) {
+            // NB may be closed before save history
+            // Is there better way?
+            try {
+                flush(project, false);
+            } catch (BackingStoreException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+    }
+
+    private static void flush(Project project, boolean isShared) throws BackingStoreException {
+        getPreferences(project, isShared).flush();
+    }
+
     private static Preferences getPreferences(Project project) {
-        return ProjectUtils.getPreferences(project, VagrantPreferences.class, true);
+        return getPreferences(project, true);
+    }
+
+    private static Preferences getPreferences(Project project, boolean isShared) {
+        return ProjectUtils.getPreferences(project, VagrantPreferences.class, isShared);
     }
 }

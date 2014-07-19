@@ -49,6 +49,7 @@ import javax.swing.JFrame;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
+import org.netbeans.modules.vagrant.command.RunCommandHistory;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
 import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
@@ -90,6 +91,16 @@ public final class VagrantInstaller extends ModuleInstall {
             vagrantStatus.removeChangeListener(lineElement);
         }
         vagrantStatus.clear();
+
+        // save run command histories
+        OpenProjects projects = OpenProjects.getDefault();
+        for (Project project : projects.getOpenProjects()) {
+            if (VagrantPreferences.isSaveRunCommandHistoriesOnClose(project)) {
+                RunCommandHistory history = RunCommandHistory.Factory.create(project);
+                VagrantPreferences.setRunCommandHistory(project, history, true);
+            }
+        }
+
     }
 
     /**

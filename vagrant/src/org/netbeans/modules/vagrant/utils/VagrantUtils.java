@@ -86,8 +86,16 @@ public final class VagrantUtils {
     }
 
     public static void showWarnigDialog(String message) {
-        NotifyDescriptor.Message descriptor = new NotifyDescriptor.Message(message, NotifyDescriptor.WARNING_MESSAGE);
-        DialogDisplayer.getDefault().notify(descriptor);
+        showDialog(message, NotifyDescriptor.WARNING_MESSAGE);
+    }
+
+    public static void showInformationDialog(String message) {
+        showDialog(message, NotifyDescriptor.INFORMATION_MESSAGE);
+    }
+
+    private static void showDialog(String text, int messageType) {
+        NotifyDescriptor.Message message = new NotifyDescriptor.Message(text, messageType);
+        DialogDisplayer.getDefault().notify(message);
     }
 
     /**
