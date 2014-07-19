@@ -61,12 +61,17 @@ public class RunCommandHistory implements CommandHistory {
             commands.remove(command);
         }
         int size = commands.size();
-        if (size >= DEFAULT_MAX_SIZE) {
-            for (int i = 0; i < size - DEFAULT_MAX_SIZE; i++) {
-                commands.remove(DEFAULT_MAX_SIZE - 1 + i);
+        int maxSize = getMaxCommandSize();
+        if (size >= maxSize) {
+            for (int i = maxSize - 1; i < size; i++) {
+                commands.remove(i);
             }
         }
         commands.add(0, command);
+    }
+
+    public int getMaxCommandSize() {
+        return DEFAULT_MAX_SIZE;
     }
 
     @Override
