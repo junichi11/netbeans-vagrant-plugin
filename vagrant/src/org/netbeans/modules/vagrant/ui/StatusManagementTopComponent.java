@@ -60,12 +60,12 @@ import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectInformation;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.api.settings.ConvertAsProperties;
+import org.netbeans.modules.vagrant.StatusLine;
 import org.netbeans.modules.vagrant.VagrantStatus;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
 import org.netbeans.modules.vagrant.utils.StringUtils;
-import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.util.Exceptions;
@@ -103,7 +103,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
 
     private static final long serialVersionUID = -5325086456659205908L;
     private static final RequestProcessor RP = new RequestProcessor(StatusManagementTopComponent.class);
-    private final DefaultListModel<Pair<Project, String>> model = new DefaultListModel<Pair<Project, String>>();
+    private final DefaultListModel<Pair<Project, StatusLine>> model = new DefaultListModel<Pair<Project, StatusLine>>();
     private final ProjectListCellRenderer cellRenderer = new ProjectListCellRenderer();
     private static final Logger LOGGER = Logger.getLogger(StatusManagementTopComponent.class.getName());
 
@@ -122,7 +122,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        projectList = new javax.swing.JList<Pair<Project, String>>();
+        projectList = new javax.swing.JList<Pair<Project, StatusLine>>();
         commandToolBar = new javax.swing.JToolBar();
         upButton = new javax.swing.JButton();
         reloadButton = new javax.swing.JButton();
@@ -346,7 +346,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
     private javax.swing.JButton destroyButton;
     private javax.swing.JButton haltButton;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JList<Pair<Project, String>> projectList;
+    private javax.swing.JList<Pair<Project, StatusLine>> projectList;
     private javax.swing.JButton provisionButton;
     private javax.swing.JButton reloadButton;
     private javax.swing.JButton reloadListAllButton;
@@ -432,7 +432,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
      * @param status
      * @param runOnBackground {@code true} if reload status on background
      */
-    private void reloadStatus(final Pair<Project, String> status, boolean runOnBackground) {
+    private void reloadStatus(final Pair<Project, StatusLine> status, boolean runOnBackground) {
         if (!runOnBackground) {
             reloadStatus(status);
             return;
@@ -451,7 +451,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
      *
      * @param status
      */
-    private synchronized void reloadStatus(Pair<Project, String> status) {
+    private synchronized void reloadStatus(Pair<Project, StatusLine> status) {
         if (status == null) {
             return;
         }
@@ -488,7 +488,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
      *
      * @return selected value
      */
-    private Pair<Project, String> getSelectedStatus() {
+    private Pair<Project, StatusLine> getSelectedStatus() {
         return projectList.getSelectedValue();
     }
 
@@ -520,7 +520,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
     private void runCommand(String command) {
         setAllButtonsEnabled(false);
         try {
-            Pair<Project, String> selectedStatus = getSelectedStatus();
+            Pair<Project, StatusLine> selectedStatus = getSelectedStatus();
             if (selectedStatus == null) {
                 return;
             }
@@ -529,8 +529,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
                 return;
             }
             // status
-            String status = selectedStatus.second();
-            String name = VagrantUtils.getNameFromStatus(status);
+            String name = selectedStatus.second().getName();
             if (name.isEmpty()) {
                 LOGGER.log(Level.WARNING, "machine name is empty.");
                 return;
@@ -583,10 +582,10 @@ public final class StatusManagementTopComponent extends TopComponent implements 
             public void run() {
                 if (source instanceof VagrantStatus) {
                     VagrantStatus vagrantStatus = (VagrantStatus) source;
-                    Pair<Project, String> selectedValue = getSelectedStatus();
-                    Pair<Project, String> newSelectedValue = null;
+                    Pair<Project, StatusLine> selectedValue = getSelectedStatus();
+                    Pair<Project, StatusLine> newSelectedValue = null;
                     model.clear();
-                    for (Pair<Project, String> status : vagrantStatus.getAll()) {
+                    for (Pair<Project, StatusLine> status : vagrantStatus.getAll()) {
                         Project project = status.first();
                         if (selectedValue != null) {
                             Project selectedProject = selectedValue.first();
@@ -610,20 +609,20 @@ public final class StatusManagementTopComponent extends TopComponent implements 
     }
 
     private void setModel() {
-        ListModel<Pair<Project, String>> m = projectList.getModel();
+        ListModel<Pair<Project, StatusLine>> m = projectList.getModel();
         if (model != m) {
             projectList.setModel(model);
         }
     }
 
     private void setCellRenderer() {
-        ListCellRenderer<? super Pair<Project, String>> cr = projectList.getCellRenderer();
+        ListCellRenderer<? super Pair<Project, StatusLine>> cr = projectList.getCellRenderer();
         if (cellRenderer != cr) {
             projectList.setCellRenderer(cellRenderer);
         }
     }
 
-    //~ Inner class
+    //~ Nested class
     private static class ProjectListCellRenderer extends DefaultListCellRenderer {
 
         private static final long serialVersionUID = 6862574717250523258L;
@@ -634,11 +633,11 @@ public final class StatusManagementTopComponent extends TopComponent implements 
                 Pair<?, ?> pair = (Pair<?, ?>) value;
                 Object first = pair.first();
                 Object second = pair.second();
-                if (first instanceof Project && second instanceof String) {
+                if (first instanceof Project && second instanceof StatusLine) {
                     Project project = (Project) first;
-                    String status = (String) second;
+                    StatusLine status = (StatusLine) second;
                     ProjectInformation information = ProjectUtils.getInformation(project);
-                    String text = String.format("%s : %s", information.getDisplayName(), status); // NOI18N
+                    String text = String.format("%s : %s", information.getDisplayName(), status.toString()); // NOI18N
                     setText(text);
                     setIcon(information.getIcon());
                     if (isSelected) {

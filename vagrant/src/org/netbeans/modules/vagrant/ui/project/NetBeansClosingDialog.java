@@ -61,9 +61,9 @@ import javax.swing.KeyStroke;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectInformation;
 import org.netbeans.api.project.ProjectUtils;
+import org.netbeans.modules.vagrant.StatusLine;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
-import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
 import org.openide.util.Pair;
@@ -92,14 +92,14 @@ public class NetBeansClosingDialog extends JDialog {
     @NbBundle.Messages({
         "NetBeansClosingDialog.title=Confirmation: Vagrant status is running"
     })
-    public NetBeansClosingDialog(java.awt.Frame parent, boolean modal, List<Pair<Project, String>> status) {
+    public NetBeansClosingDialog(java.awt.Frame parent, boolean modal, List<Pair<Project, StatusLine>> status) {
         super(parent, modal);
         initComponents();
         setTitle(Bundle.NetBeansClosingDialog_title());
 
         // add projects to list
-        DefaultListModel<Pair<Project, String>> model = new DefaultListModel<Pair<Project, String>>();
-        for (Pair<Project, String> s : status) {
+        DefaultListModel<Pair<Project, StatusLine>> model = new DefaultListModel<Pair<Project, StatusLine>>();
+        for (Pair<Project, StatusLine> s : status) {
             model.addElement(s);
         }
         projectList.setModel(model);
@@ -142,7 +142,7 @@ public class NetBeansClosingDialog extends JDialog {
         shutdownButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        projectList = new javax.swing.JList<Pair<Project, String>>();
+        projectList = new javax.swing.JList<Pair<Project, StatusLine>>();
         haltButton = new javax.swing.JButton();
         haltAllButton = new javax.swing.JButton();
 
@@ -235,24 +235,24 @@ public class NetBeansClosingDialog extends JDialog {
     }//GEN-LAST:event_closeDialog
 
     private void haltButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_haltButtonActionPerformed
-        List<Pair<Project, String>> selectedProjects = projectList.getSelectedValuesList();
+        List<Pair<Project, StatusLine>> selectedProjects = projectList.getSelectedValuesList();
         halt(selectedProjects);
     }//GEN-LAST:event_haltButtonActionPerformed
 
     private void haltAllButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_haltAllButtonActionPerformed
-        DefaultListModel<Pair<Project, String>> model = (DefaultListModel<Pair<Project, String>>) projectList.getModel();
-        Enumeration<Pair<Project, String>> elements = model.elements();
-        ArrayList<Pair<Project, String>> projects = Collections.list(elements);
+        DefaultListModel<Pair<Project, StatusLine>> model = (DefaultListModel<Pair<Project, StatusLine>>) projectList.getModel();
+        Enumeration<Pair<Project, StatusLine>> elements = model.elements();
+        ArrayList<Pair<Project, StatusLine>> projects = Collections.list(elements);
         halt(projects);
     }//GEN-LAST:event_haltAllButtonActionPerformed
 
-    private void halt(List<Pair<Project, String>> status) {
-        for (Pair<Project, String> s : status) {
+    private void halt(List<Pair<Project, StatusLine>> status) {
+        for (Pair<Project, StatusLine> s : status) {
             try {
                 Vagrant vagrant = Vagrant.getDefault();
-                String name = VagrantUtils.getNameFromStatus(s.second());
+                String name = s.second().getName();
                 vagrant.halt(s.first(), name);
-                DefaultListModel<Pair<Project, String>> model = (DefaultListModel<Pair<Project, String>>) projectList.getModel();
+                DefaultListModel<Pair<Project, StatusLine>> model = (DefaultListModel<Pair<Project, StatusLine>>) projectList.getModel();
                 model.removeElement(s);
             } catch (InvalidVagrantExecutableException ex) {
                 Exceptions.printStackTrace(ex);
@@ -271,7 +271,7 @@ public class NetBeansClosingDialog extends JDialog {
     private javax.swing.JButton haltAllButton;
     private javax.swing.JButton haltButton;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JList<Pair<Project, String>> projectList;
+    private javax.swing.JList<Pair<Project, StatusLine>> projectList;
     private javax.swing.JButton shutdownButton;
     // End of variables declaration//GEN-END:variables
 
@@ -286,11 +286,11 @@ public class NetBeansClosingDialog extends JDialog {
                 Pair<?, ?> pair = (Pair<?, ?>) value;
                 Object first = pair.first();
                 Object second = pair.second();
-                if (first instanceof Project && second instanceof String) {
+                if (first instanceof Project && second instanceof StatusLine) {
                     Project project = (Project) first;
-                    String status = (String) second;
+                    StatusLine statusLine = (StatusLine) second;
                     ProjectInformation information = ProjectUtils.getInformation(project);
-                    setText(String.format("%s : %s", information.getDisplayName(), status));
+                    setText(String.format("%s : %s", information.getDisplayName(), statusLine.toString()));
                     setIcon(information.getIcon());
                     if (isSelected) {
                         setBackground(list.getSelectionBackground());

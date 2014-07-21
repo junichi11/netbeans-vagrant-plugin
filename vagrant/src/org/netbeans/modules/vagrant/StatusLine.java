@@ -41,72 +41,74 @@
  */
 package org.netbeans.modules.vagrant;
 
-import java.util.List;
-import javax.swing.event.ChangeListener;
-import org.netbeans.api.project.Project;
-import org.openide.util.Pair;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.netbeans.modules.vagrant.utils.StringUtils;
 
 /**
- * Manage vagrant status. Update status when Vagrant command is run.
  *
  * @author junichi11
  */
-public interface VagrantStatus {
+public class StatusLine {
 
-    /**
-     * Get all status of projects.
-     *
-     * @return status
-     */
-    public List<Pair<Project, StatusLine>> getAll();
+    private final String name;
+    private final String status;
+    private final String provider;
+    private static final Pattern STATUS_LINE_PATTERN = Pattern.compile("\\A(?<name>.+\\s{2,})(?<status>[^ ]+.+\\s)\\((?<provider>.+)\\)\\z"); // NOI18N
 
-    /**
-     * Get status of a project.
-     *
-     * @param project
-     * @return status of a project. If status doesn't exist, empty list.
-     */
-    public List<StatusLine> get(Project project);
+    public static StatusLine create(String statusLine) {
+        // format: name status (provider)
+        String name = ""; // NOI18N
+        String status = ""; // NOI18N
+        String provider = ""; // NOI18N
+        if (StringUtils.isEmpty(statusLine)) {
+            return new StatusLine(name, status, provider);
+        }
 
-    /**
-     * Remove status of a project.
-     *
-     * @param project
-     */
-    public void remove(Project project);
+        Matcher matcher = STATUS_LINE_PATTERN.matcher(statusLine);
+        if (matcher.find()) {
+            name = matcher.group("name"); // NOI18N
+            status = matcher.group("status"); // NOI18N
+            provider = matcher.group("provider"); // NOI18N
+            name = name == null ? "" : name.trim();
+            status = status == null ? "" : status.trim();
+            provider = provider == null ? "" : provider.trim();
+        }
+        return new StatusLine(name, status, provider);
+    }
 
-    /**
-     * Update status of a project. Please run on another thread (e.g. use
-     * {@link RequestProcessor}) because it may take too many time while getting
-     * status,
-     *
-     * @param project
-     */
-    public void update(Project project);
+    private StatusLine(String name, String status, String provider) {
+        this.name = name;
+        this.status = status;
+        this.provider = provider;
+    }
 
-    /**
-     * Add {@link ChangeListener}.
-     *
-     * @param listener
-     */
-    public void addChangeListener(ChangeListener listener);
+    public String getName() {
+        return name;
+    }
 
-    /**
-     * Remove {@link ChangeListener}.
-     *
-     * @param listener
-     */
-    public void removeChangeListener(ChangeListener listener);
+    public String getStatus() {
+        return status;
+    }
 
-    /**
-     * Refresh all status of opened projects. Please run on another thread (e.g.
-     * use {@link RequestProcessor}) because it may take too many time while
-     * getting status.
-     */
-    public void refresh();
+    public String getProvider() {
+        return provider;
+    }
 
-    /**
-     * Clear all items.
-     */
-    public void clear();
+    @Override
+    public String toString() {
+        if (name.isEmpty() || status.isEmpty() || provider.isEmpty()) {
+            return ""; // NOI18N
+        }
+        return String.format("%s %s (%s)", name, status, provider); // NOI18N
+    }
+
+    public static boolean isStatusLine(String line) {
+        if (StringUtils.isEmpty(line)) {
+            return false;
+        }
+        Matcher matcher = STATUS_LINE_PATTERN.matcher(line);
+        return matcher.find();
+    }
+
 }
