@@ -296,6 +296,16 @@ public final class Vagrant {
         return runCommand(project, UP_COMMAND, Bundle.Vagrant_run_up(), Arrays.asList(name));
     }
 
+    public Future<Integer> up(Project project, String name, String provider) {
+        List<String> params = new ArrayList<String>();
+        if (!StringUtils.isEmpty(provider)) {
+            params.add("--provider");
+            params.add(provider);
+        }
+        params.add(name);
+        return runCommand(project, UP_COMMAND, Bundle.Vagrant_run_up(), params);
+    }
+
     @NbBundle.Messages("Vagrant.run.reload=Vagrant (reload)")
     public Future<Integer> reload(Project project) {
         return runCommand(project, RELOAD_COMMAND, Bundle.Vagrant_run_reload());

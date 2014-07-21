@@ -530,6 +530,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
             }
             // status
             String name = selectedStatus.second().getName();
+            String provider = selectedStatus.second().getProvider();
             if (name.isEmpty()) {
                 LOGGER.log(Level.WARNING, "machine name is empty.");
                 return;
@@ -538,7 +539,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
                 Vagrant vagrant = Vagrant.getDefault();
                 Future<Integer> result = null;
                 if (command.equals(Vagrant.UP_COMMAND)) {
-                    result = vagrant.up(selectedProject, name);
+                    result = vagrant.up(selectedProject, name, provider);
                 } else if (command.equals(Vagrant.RELOAD_COMMAND)) {
                     result = vagrant.reload(selectedProject, name);
                 } else if (command.equals(Vagrant.SUSPEND_COMMAND)) {
