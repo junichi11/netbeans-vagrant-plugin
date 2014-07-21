@@ -57,7 +57,6 @@ import org.netbeans.modules.vagrant.ui.VagrantStatusLineElement;
 import org.netbeans.modules.vagrant.ui.project.NetBeansClosingDialog;
 import org.netbeans.modules.vagrant.ui.project.ProjectClosedAction;
 import org.netbeans.modules.vagrant.utils.StringUtils;
-import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.modules.ModuleInstall;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
@@ -119,8 +118,8 @@ public final class VagrantInstaller extends ModuleInstall {
             return Status.getInstance().setShutdown();
         }
 
-        ArrayList<Pair<Project, String>> runningProjects = new ArrayList<Pair<Project, String>>();
-        ArrayList<Pair<Project, String>> haltAskProjects = new ArrayList<Pair<Project, String>>();
+        ArrayList<Pair<Project, StatusLine>> runningProjects = new ArrayList<Pair<Project, StatusLine>>();
+        ArrayList<Pair<Project, StatusLine>> haltAskProjects = new ArrayList<Pair<Project, StatusLine>>();
         getRunningProejcts(haltAskProjects, runningProjects);
 
         // halt-ask?
@@ -139,11 +138,11 @@ public final class VagrantInstaller extends ModuleInstall {
         return Status.getInstance().setShutdown();
     }
 
-    private void getRunningProejcts(List<Pair<Project, String>> haltAskProjects, List<Pair<Project, String>> runningProjects) {
+    private void getRunningProejcts(List<Pair<Project, StatusLine>> haltAskProjects, List<Pair<Project, StatusLine>> runningProjects) {
         if (VagrantOptions.getInstance().isCachedStatusOnClose()) {
             VagrantStatus vagrantStatus = Lookup.getDefault().lookup(VagrantStatus.class);
             if (vagrantStatus != null) {
-                for (Pair<Project, String> pair : vagrantStatus.getAll()) {
+                for (Pair<Project, StatusLine> pair : vagrantStatus.getAll()) {
                     separateRunningProjects(pair, haltAskProjects, runningProjects);
                 }
             }
@@ -153,10 +152,10 @@ public final class VagrantInstaller extends ModuleInstall {
             for (Project project : projects.getOpenProjects()) {
                 try {
                     Vagrant vagrant = Vagrant.getDefault();
-                    List<String> statuses = vagrant.getStatuses(project);
+                    List<StatusLine> statusLines = vagrant.getStatusLines(project);
                     // status confirmation
-                    for (String status : statuses) {
-                        separateRunningProjects(Pair.of(project, status), haltAskProjects, runningProjects);
+                    for (StatusLine statusLine : statusLines) {
+                        separateRunningProjects(Pair.of(project, statusLine), haltAskProjects, runningProjects);
                         break;
                     }
                 } catch (InvalidVagrantExecutableException ex) {
@@ -166,8 +165,8 @@ public final class VagrantInstaller extends ModuleInstall {
         }
     }
 
-    private void separateRunningProjects(Pair<Project, String> status, List<Pair<Project, String>> haltAskProjects, List<Pair<Project, String>> runningProjects) {
-        if (status.second().contains("running")) { // NOI18N
+    private void separateRunningProjects(Pair<Project, StatusLine> status, List<Pair<Project, StatusLine>> haltAskProjects, List<Pair<Project, StatusLine>> runningProjects) {
+        if (status.second().getStatus().contains("running")) { // NOI18N
             ProjectClosedAction closedAction = VagrantPreferences.getProjectClosedAction(status.first());
             if (closedAction == ProjectClosedAction.HALT_ASK) {
                 haltAskProjects.add(status);
@@ -177,11 +176,11 @@ public final class VagrantInstaller extends ModuleInstall {
         }
     }
 
-    private void haltProjects(List<Pair<Project, String>> runningProjects) {
-        for (Pair<Project, String> status : runningProjects) {
+    private void haltProjects(List<Pair<Project, StatusLine>> runningProjects) {
+        for (Pair<Project, StatusLine> status : runningProjects) {
             try {
                 Vagrant vagrant = Vagrant.getDefault();
-                String name = VagrantUtils.getNameFromStatus(status.second());
+                String name = status.second().getName();
                 vagrant.halt(status.first(), name);
             } catch (InvalidVagrantExecutableException ex) {
                 LOGGER.log(Level.WARNING, ex.getMessage());

@@ -96,7 +96,7 @@
             </Property>
           </Properties>
           <AuxValues>
-            <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Pair&lt;Project, String&gt;&gt;"/>
+            <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Pair&lt;Project, StatusLine&gt;&gt;"/>
           </AuxValues>
         </Component>
       </SubComponents>
