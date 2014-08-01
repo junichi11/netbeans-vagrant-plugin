@@ -170,8 +170,10 @@ public final class VagrantInstaller extends ModuleInstall {
             ProjectClosedAction closedAction = VagrantPreferences.getProjectClosedAction(status.first());
             if (closedAction == ProjectClosedAction.HALT_ASK) {
                 haltAskProjects.add(status);
-            } else {
+            } else if (closedAction == ProjectClosedAction.HALT) {
                 runningProjects.add(status);
+            } else {
+                // none: noop
             }
         }
     }
