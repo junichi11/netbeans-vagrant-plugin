@@ -190,7 +190,6 @@ public final class VagrantInstaller extends ModuleInstall {
         }
     }
 
-    //~ Inner class
     public static class Status {
 
         private static final Status INSTANCE = new Status();
