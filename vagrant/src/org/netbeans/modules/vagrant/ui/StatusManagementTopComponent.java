@@ -66,10 +66,13 @@ import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
 import org.netbeans.modules.vagrant.utils.StringUtils;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
+import org.openide.util.NbBundle;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.Pair;
 import org.openide.util.RequestProcessor;
@@ -325,8 +328,28 @@ public final class StatusManagementTopComponent extends TopComponent implements 
         runCommand(Vagrant.RESUME_COMMAND, true);
     }//GEN-LAST:event_resumeButtonActionPerformed
 
+    @NbBundle.Messages({
+        "# {0} - display name",
+        "# {1} - machine name",
+        "StatusManagementTopComponent.destroy.confirmation=Do you realy want to destroy ({0} : {1})?"
+    })
     private void destroyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_destroyButtonActionPerformed
-        runCommand(Vagrant.DESTROY_COMMAND, true);
+        Pair<Project, StatusLine> selectedStatus = getSelectedStatus();
+        if (selectedStatus == null) {
+            return;
+        }
+        Project selectedProject = selectedStatus.first();
+        ProjectInformation information = ProjectUtils.getInformation(selectedProject);
+        String displayName = information.getDisplayName();
+        String machineName = selectedStatus.second().getName();
+
+        NotifyDescriptor.Confirmation confirmation = new NotifyDescriptor.Confirmation(
+                Bundle.StatusManagementTopComponent_destroy_confirmation(displayName, machineName),
+                NotifyDescriptor.Confirmation.OK_CANCEL_OPTION
+        );
+        if (DialogDisplayer.getDefault().notify(confirmation) == NotifyDescriptor.OK_OPTION) {
+            runCommand(Vagrant.DESTROY_COMMAND, true);
+        }
     }//GEN-LAST:event_destroyButtonActionPerformed
 
     private void statusButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_statusButtonActionPerformed
