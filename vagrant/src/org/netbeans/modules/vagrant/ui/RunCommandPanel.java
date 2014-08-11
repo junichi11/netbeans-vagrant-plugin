@@ -54,15 +54,21 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.JTextComponent;
 import org.netbeans.api.annotations.common.NonNull;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.command.CommandHistory;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
+import org.netbeans.modules.vagrant.command.RunCommandHistory;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.filesystems.FileObject;
+import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
 
 /**
@@ -92,7 +98,8 @@ public class RunCommandPanel extends JPanel {
     }
 
     private void setDocumentListener() {
-        parameterTextField.getDocument().addDocumentListener(new DefaultDocumentListener());
+        Document comboboxDocument = getParameterComboBoxDocument();
+        comboboxDocument.addDocumentListener(new DefaultDocumentListener());
     }
 
     private void init() {
@@ -160,20 +167,27 @@ public class RunCommandPanel extends JPanel {
         if (project == null) {
             return;
         }
-
+        RunCommandHistory history = RunCommandHistory.Factory.create(project);
         String command = getCommand();
         if (StringUtils.isEmpty(command)) {
             return;
         }
         List<String> params = StringUtils.explode(getParameters(), " ");
 
+        boolean hasError = false;
         try {
             // run command
             Vagrant vagrant = Vagrant.getDefault();
             vagrant.runCommand(project, command, Bundle.RunCommandPanel_run_command(getCommand()), params);
         } catch (InvalidVagrantExecutableException ex) {
+            hasError = true;
             LOGGER.log(Level.WARNING, ex.getMessage());
             VagrantUtils.showWarnigDialog(ex.getMessage());
+        }
+
+        if (!hasError) {
+            history.add(new CommandHistory.Command(command, params));
+            updateParameterComboBox(command);
         }
     }
 
@@ -186,16 +200,38 @@ public class RunCommandPanel extends JPanel {
     }
 
     public String getParameters() {
-        String params = parameterTextField.getText().trim();
-        return params.replaceAll(" +", " "); // NOI18N
+        Document document = getParameterComboBoxDocument();
+        try {
+            String params = document.getText(0, document.getLength());
+            return params.replaceAll(" +", " "); // NOI18N
+        } catch (BadLocationException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+        return ""; // NOI18N
     }
 
     private DefaultListModel<String> getListModel() {
         return (DefaultListModel<String>) commandList.getModel();
     }
 
+    private Document getParameterComboBoxDocument() {
+        JTextComponent editorComponent = (JTextComponent) parameterComboBox.getEditor().getEditorComponent();
+        return editorComponent.getDocument();
+    }
+
     private void updateCommandTextField(String command) {
         commandTextField.setText(String.format("%s %s", command, getParameters())); // NOI18N
+    }
+
+    private void updateParameterComboBox(String command) {
+        parameterComboBox.removeAllItems();
+        RunCommandHistory history = RunCommandHistory.Factory.create(project);
+        for (CommandHistory.Command cmd : history.getCommands()) {
+            if (!command.equals(cmd.getCommand())) {
+                continue;
+            }
+            parameterComboBox.addItem(StringUtils.implode(cmd.getParameters(), " ")); // NOI18N
+        }
     }
 
     private void addSubcommands(String command, int selectedIndex) throws InvalidVagrantExecutableException {
@@ -225,19 +261,17 @@ public class RunCommandPanel extends JPanel {
 
         commandTextField = new javax.swing.JTextField();
         parameterLabel = new javax.swing.JLabel();
-        parameterTextField = new javax.swing.JTextField();
         commandScrollPane = new javax.swing.JScrollPane();
         commandList = new javax.swing.JList<String>();
         helpScrollPane = new javax.swing.JScrollPane();
         helpTextArea = new javax.swing.JTextArea();
         reloadButton = new javax.swing.JButton();
+        parameterComboBox = new javax.swing.JComboBox<String>();
 
         commandTextField.setEditable(false);
         commandTextField.setText(org.openide.util.NbBundle.getMessage(RunCommandPanel.class, "RunCommandPanel.commandTextField.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(parameterLabel, org.openide.util.NbBundle.getMessage(RunCommandPanel.class, "RunCommandPanel.parameterLabel.text")); // NOI18N
-
-        parameterTextField.setText(org.openide.util.NbBundle.getMessage(RunCommandPanel.class, "RunCommandPanel.parameterTextField.text")); // NOI18N
 
         commandList.setModel(new DefaultListModel<String>());
         commandList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
@@ -260,6 +294,8 @@ public class RunCommandPanel extends JPanel {
             }
         });
 
+        parameterComboBox.setEditable(true);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -269,14 +305,14 @@ public class RunCommandPanel extends JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(helpScrollPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 476, Short.MAX_VALUE)
                     .addComponent(commandScrollPane)
-                    .addComponent(parameterTextField, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(parameterLabel)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(commandTextField)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(reloadButton)))
+                        .addComponent(reloadButton))
+                    .addComponent(parameterComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -287,7 +323,7 @@ public class RunCommandPanel extends JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(parameterLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(parameterTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(parameterComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(commandScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -303,6 +339,9 @@ public class RunCommandPanel extends JPanel {
         int selectedIndex = commandList.getSelectedIndex();
         // update command text field
         updateCommandTextField(command);
+
+        // update comand history
+        updateParameterComboBox(command);
 
         // update help
         String help = helpMap.get(command);
@@ -333,14 +372,15 @@ public class RunCommandPanel extends JPanel {
         update();
         helpMap.clear();
     }//GEN-LAST:event_reloadButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JList<String> commandList;
     private javax.swing.JScrollPane commandScrollPane;
     private javax.swing.JTextField commandTextField;
     private javax.swing.JScrollPane helpScrollPane;
     private javax.swing.JTextArea helpTextArea;
+    private javax.swing.JComboBox<String> parameterComboBox;
     private javax.swing.JLabel parameterLabel;
-    private javax.swing.JTextField parameterTextField;
     private javax.swing.JButton reloadButton;
     // End of variables declaration//GEN-END:variables
 

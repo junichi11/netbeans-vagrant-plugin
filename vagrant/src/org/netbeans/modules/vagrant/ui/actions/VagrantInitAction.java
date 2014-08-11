@@ -124,13 +124,22 @@ public final class VagrantInitAction extends VagrantAction implements ChangeList
                 vagrant.workDir(new File(vagrantRootPath));
             }
             // init
-            vagrant.init(project, getPanel().getBoxName(), ""); // NOI18N
+            vagrant.init(project, getBoxName(), ""); // NOI18N
         } catch (InvalidVagrantExecutableException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
         LOGGER.log(Level.INFO, Bundle.VagrantInitAction_run_init_info(vagrantRootPath));
 
         setVagrantRootPath(project, vagrantRootPath);
+    }
+
+    private String getBoxName() {
+        String boxName = getPanel().getBoxName();
+        int indexOfWhiteSpace = boxName.indexOf(" "); // NOI18N
+        if (indexOfWhiteSpace == -1) {
+            return boxName;
+        }
+        return boxName.substring(0, indexOfWhiteSpace);
     }
 
     private boolean existsVagrant(Project project) {

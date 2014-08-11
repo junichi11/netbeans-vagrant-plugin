@@ -70,6 +70,7 @@ import org.netbeans.api.extexecution.input.InputProcessor;
 import org.netbeans.api.extexecution.input.InputProcessors;
 import org.netbeans.api.extexecution.input.LineProcessor;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.StatusLine;
 import org.netbeans.modules.vagrant.VagrantStatus;
 import org.netbeans.modules.vagrant.VagrantVersion;
 import org.netbeans.modules.vagrant.Versionable;
@@ -293,6 +294,16 @@ public final class Vagrant {
 
     public Future<Integer> up(Project project, String name) {
         return runCommand(project, UP_COMMAND, Bundle.Vagrant_run_up(), Arrays.asList(name));
+    }
+
+    public Future<Integer> up(Project project, String name, String provider) {
+        List<String> params = new ArrayList<String>();
+        if (!StringUtils.isEmpty(provider)) {
+            params.add("--provider");
+            params.add(provider);
+        }
+        params.add(name);
+        return runCommand(project, UP_COMMAND, Bundle.Vagrant_run_up(), params);
     }
 
     @NbBundle.Messages("Vagrant.run.reload=Vagrant (reload)")
@@ -561,15 +572,15 @@ public final class Vagrant {
     }
 
     /**
-     * Get statuses of VMs.
+     * Get status of VMs.
      *
      * @param project
-     * @return statuses
+     * @return status lines
      */
-    public List<String> getStatuses(Project project) {
-        List<String> statuses = new ArrayList<String>();
+    public List<StatusLine> getStatusLines(Project project) {
+        List<StatusLine> statusLines = new ArrayList<StatusLine>();
         if (project == null) {
-            return statuses;
+            return statusLines;
         }
         setWorkDir(project);
 
@@ -585,23 +596,14 @@ public final class Vagrant {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }
 
-        boolean isStart = false;
+        // get all machine status
         for (String line : lineProcessor.getList()) {
-            if (line.isEmpty()) {
-                if (isStart) {
-                    break;
-                }
-                isStart = true;
-                continue;
-            }
-
-            if (isStart) {
-                String status = getStatus(line);
-                statuses.add(status);
+            if (StatusLine.isStatusLine(line)) {
+                statusLines.add(StatusLine.create(line));
             }
         }
 
-        return statuses;
+        return statusLines;
     }
 
     private void setWorkDir(Project project) {
@@ -619,29 +621,6 @@ public final class Vagrant {
                 workDir(FileUtil.toFile(project.getProjectDirectory()));
             }
         }
-    }
-
-    /**
-     * Get formatted status. (e.g. default: not created)
-     *
-     * @param status
-     * @return formatted status
-     */
-    private String getStatus(String line) {
-        String status = line.replaceAll(" +", " "); // NOI18N
-        String[] split = status.split(" "); // NOI18N
-        if (split.length >= 2) {
-            split[0] = String.format("%s:", split[0]); // NOI18N
-            StringBuilder sb = new StringBuilder();
-            for (String string : split) {
-                if (string.matches("^\\(.+\\)$")) { // NOI18N
-                    break;
-                }
-                sb.append(" ").append(string); // NOI18N
-            }
-            return sb.toString();
-        }
-        return status;
     }
 
     @CheckForNull
@@ -961,7 +940,6 @@ public final class Vagrant {
         }
     }
 
-    //~ Inner classes
     private static class VagrantLineProcessor implements LineProcessor {
 
         private final ArrayList<String> list = new ArrayList<String>();

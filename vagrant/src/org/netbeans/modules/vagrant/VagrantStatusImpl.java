@@ -72,32 +72,33 @@ import org.openide.util.lookup.ServiceProvider;
 public final class VagrantStatusImpl implements VagrantStatus {
 
     private final ChangeSupport changeSupport = new ChangeSupport(this);
-    private static final Map<Project, List<Pair<Project, String>>> VAGRANT_STATUS = new TreeMap<Project, List<Pair<Project, String>>>(new Comparator<Project>() {
+    private static final Map<Project, List<Pair<Project, StatusLine>>> VAGRANT_STATUS
+            = new TreeMap<Project, List<Pair<Project, StatusLine>>>(new Comparator<Project>() {
 
-        @Override
-        public int compare(Project p1, Project p2) {
-            ProjectInformation info1 = ProjectUtils.getInformation(p1);
-            ProjectInformation info2 = ProjectUtils.getInformation(p2);
-            return info1.getDisplayName().compareTo(info2.getDisplayName());
-        }
-    });
+                @Override
+                public int compare(Project p1, Project p2) {
+                    ProjectInformation info1 = ProjectUtils.getInformation(p1);
+                    ProjectInformation info2 = ProjectUtils.getInformation(p2);
+                    return info1.getDisplayName().compareTo(info2.getDisplayName());
+                }
+            });
     private static final RequestProcessor RP = new RequestProcessor(VagrantStatusImpl.class);
     private static final Logger LOGGER = Logger.getLogger(VagrantStatusImpl.class.getName());
 
     @Override
-    public synchronized List<Pair<Project, String>> getAll() {
-        ArrayList<Pair<Project, String>> allList = new ArrayList<Pair<Project, String>>();
-        for (List<Pair<Project, String>> list : VAGRANT_STATUS.values()) {
+    public synchronized List<Pair<Project, StatusLine>> getAll() {
+        ArrayList<Pair<Project, StatusLine>> allList = new ArrayList<Pair<Project, StatusLine>>();
+        for (List<Pair<Project, StatusLine>> list : VAGRANT_STATUS.values()) {
             allList.addAll(list);
         }
         return allList;
     }
 
     @Override
-    public synchronized List<String> get(Project project) {
-        ArrayList<String> allStatus = new ArrayList<String>();
-        List<Pair<Project, String>> statusList = VAGRANT_STATUS.get(project);
-        for (Pair<Project, String> status : statusList) {
+    public synchronized List<StatusLine> get(Project project) {
+        ArrayList<StatusLine> allStatus = new ArrayList<StatusLine>();
+        List<Pair<Project, StatusLine>> statusList = VAGRANT_STATUS.get(project);
+        for (Pair<Project, StatusLine> status : statusList) {
             allStatus.add(status.second());
         }
         return allStatus;
@@ -106,10 +107,10 @@ public final class VagrantStatusImpl implements VagrantStatus {
     private synchronized void add(Project project) {
         try {
             Vagrant vagrant = Vagrant.getDefault();
-            List<String> status = vagrant.getStatuses(project);
-            ArrayList<Pair<Project, String>> list = new ArrayList<Pair<Project, String>>(status.size());
-            for (String s : status) {
-                Pair<Project, String> pair = Pair.of(project, s);
+            List<StatusLine> statusLines = vagrant.getStatusLines(project);
+            ArrayList<Pair<Project, StatusLine>> list = new ArrayList<Pair<Project, StatusLine>>(statusLines.size());
+            for (StatusLine statusLine : statusLines) {
+                Pair<Project, StatusLine> pair = Pair.of(project, statusLine);
                 list.add(pair);
             }
             VAGRANT_STATUS.put(project, list);

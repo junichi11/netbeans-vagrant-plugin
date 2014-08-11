@@ -39,74 +39,65 @@
  *
  * Portions Copyrighted 2014 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.vagrant;
+package org.netbeans.modules.vagrant.command;
 
+import java.util.ArrayList;
 import java.util.List;
-import javax.swing.event.ChangeListener;
-import org.netbeans.api.project.Project;
-import org.openide.util.Pair;
 
 /**
- * Manage vagrant status. Update status when Vagrant command is run.
  *
  * @author junichi11
  */
-public interface VagrantStatus {
+public interface CommandHistory {
 
-    /**
-     * Get all status of projects.
-     *
-     * @return status
-     */
-    public List<Pair<Project, StatusLine>> getAll();
+    public void add(Command command);
 
-    /**
-     * Get status of a project.
-     *
-     * @param project
-     * @return status of a project. If status doesn't exist, empty list.
-     */
-    public List<StatusLine> get(Project project);
+    public List<Command> getCommands();
 
-    /**
-     * Remove status of a project.
-     *
-     * @param project
-     */
-    public void remove(Project project);
+    public static final class Command {
 
-    /**
-     * Update status of a project. Please run on another thread (e.g. use
-     * {@link RequestProcessor}) because it may take too many time while getting
-     * status,
-     *
-     * @param project
-     */
-    public void update(Project project);
+        private final String command;
+        private final List<String> parameters;
 
-    /**
-     * Add {@link ChangeListener}.
-     *
-     * @param listener
-     */
-    public void addChangeListener(ChangeListener listener);
+        public Command(String command, List<String> parameters) {
+            this.command = command;
+            this.parameters = parameters;
+        }
 
-    /**
-     * Remove {@link ChangeListener}.
-     *
-     * @param listener
-     */
-    public void removeChangeListener(ChangeListener listener);
+        public String getCommand() {
+            return command;
+        }
 
-    /**
-     * Refresh all status of opened projects. Please run on another thread (e.g.
-     * use {@link RequestProcessor}) because it may take too many time while
-     * getting status.
-     */
-    public void refresh();
+        public List<String> getParameters() {
+            return new ArrayList<String>(parameters);
+        }
 
-    /**
-     * Clear all items.
-     */
-    public void clear();
+        @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 97 * hash + (this.command != null ? this.command.hashCode() : 0);
+            hash = 97 * hash + (this.parameters != null ? this.parameters.hashCode() : 0);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final Command other = (Command) obj;
+            if ((this.command == null) ? (other.command != null) : !this.command.equals(other.command)) {
+                return false;
+            }
+            if (this.parameters != other.parameters && (this.parameters == null || !this.parameters.equals(other.parameters))) {
+                return false;
+            }
+            return true;
+        }
+
+    }
+
 }

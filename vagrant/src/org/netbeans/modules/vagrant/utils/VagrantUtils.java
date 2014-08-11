@@ -86,8 +86,16 @@ public final class VagrantUtils {
     }
 
     public static void showWarnigDialog(String message) {
-        NotifyDescriptor.Message descriptor = new NotifyDescriptor.Message(message, NotifyDescriptor.WARNING_MESSAGE);
-        DialogDisplayer.getDefault().notify(descriptor);
+        showDialog(message, NotifyDescriptor.WARNING_MESSAGE);
+    }
+
+    public static void showInformationDialog(String message) {
+        showDialog(message, NotifyDescriptor.INFORMATION_MESSAGE);
+    }
+
+    private static void showDialog(String text, int messageType) {
+        NotifyDescriptor.Message message = new NotifyDescriptor.Message(text, messageType);
+        DialogDisplayer.getDefault().notify(message);
     }
 
     /**
@@ -237,17 +245,4 @@ public final class VagrantUtils {
         return FileOwnerQuery.getOwner(target);
     }
 
-    /**
-     * Get name from status.
-     *
-     * @param status e.g. default: running (format name: status)
-     * @return name e.g. default
-     */
-    public static String getNameFromStatus(String status) {
-        if (status == null) {
-            return ""; // NOI18N
-        }
-        int indexOf = status.indexOf(":"); // NOI18N
-        return indexOf != -1 ? status.substring(0, indexOf).trim() : ""; // NOI18N
-    }
 }

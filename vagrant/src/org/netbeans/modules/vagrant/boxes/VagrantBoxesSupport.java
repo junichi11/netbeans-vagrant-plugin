@@ -152,6 +152,6 @@ public final class VagrantBoxesSupport {
         return ths.get(0).text().trim().toLowerCase().equals("name") // NOI18N
                 && ths.get(1).text().trim().toLowerCase().equals("provider") // NOI18N
                 && ths.get(2).text().trim().toLowerCase().equals("url") // NOI18N
-                && ths.get(3).text().trim().toLowerCase().equals("size"); // NOI18N
+                && ths.get(3).text().trim().toLowerCase().equals("size (mb)"); // NOI18N
     }
 }

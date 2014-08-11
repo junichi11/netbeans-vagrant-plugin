@@ -45,8 +45,10 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.StatusLine;
 import org.netbeans.modules.vagrant.VagrantStatus;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
+import org.netbeans.modules.vagrant.command.RunCommandHistory;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
 import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
@@ -69,7 +71,8 @@ import org.openide.util.lookup.Lookups;
     "org-netbeans-modules-java-j2seproject",
     "org-netbeans-modules-php-project",
     "org-netbeans-modules-web-project",
-    "org-netbeans-modules-web.clientproject"
+    "org-netbeans-modules-web.clientproject",
+    "com-tropyx-nb_puppet"
 })
 public class VagrantLookupProvider implements LookupProvider {
 
@@ -103,10 +106,10 @@ public class VagrantLookupProvider implements LookupProvider {
                 }
                 try {
                     Vagrant vagrant = Vagrant.getDefault();
-                    List<String> statuses = vagrant.getStatuses(project);
+                    List<StatusLine> statusLines = vagrant.getStatusLines(project);
                     // status confirmation
-                    for (String status : statuses) {
-                        if (status.contains("running")) { // NOI18N
+                    for (StatusLine statusLine : statusLines) {
+                        if (statusLine.getStatus().contains("running")) { // NOI18N
                             ProjectClosedAction closedAction = VagrantPreferences.getProjectClosedAction(project);
                             closedAction.run(project, vagrant);
                             break;
@@ -121,6 +124,9 @@ public class VagrantLookupProvider implements LookupProvider {
                 if (vagrantStatus != null) {
                     vagrantStatus.remove(project);
                 }
+
+                // remove command history
+                RunCommandHistory.Factory.remove(project);
             }
 
             private VagrantStatus getVagrantStatus() {

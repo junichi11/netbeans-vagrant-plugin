@@ -59,6 +59,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.StatusLine;
 import org.netbeans.modules.vagrant.VagrantStatus;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
 import org.netbeans.modules.vagrant.ui.actions.VagrantAction;
@@ -201,7 +202,13 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
                 clearStatusLabel();
                 return;
             }
-            statusLabel.setText(status);
+            int indexOfComma = status.indexOf(","); // NOI18N
+            String statusText = status;
+            if (indexOfComma != -1) {
+                statusText = String.format("%s...", status.substring(0, indexOfComma)); // NOI18N
+            }
+            statusLabel.setText(statusText);
+            statusLabel.setToolTipText(status);
             statusLabel.setIcon(VagrantUtils.getIcon(VagrantUtils.VAGRANT_ICON_16));
             return;
         }
@@ -214,7 +221,13 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
                     clearStatusLabel();
                     return;
                 }
-                statusLabel.setText(status);
+                int indexOfComma = status.indexOf(","); // NOI18N
+                String statusText = status;
+                if (indexOfComma != -1) {
+                    statusText = status.substring(0, indexOfComma);
+                }
+                statusLabel.setText(statusText);
+                statusLabel.setToolTipText(status);
                 statusLabel.setIcon(VagrantUtils.getIcon(VagrantUtils.VAGRANT_ICON_16));
             }
         });
@@ -227,6 +240,7 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
         if (SwingUtilities.isEventDispatchThread()) {
             project = null;
             statusLabel.setText(""); // NOI18N
+            statusLabel.setToolTipText(""); // NOI18N
             statusLabel.setIcon(null);
             return;
         }
@@ -237,6 +251,7 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
             public void run() {
                 project = null;
                 statusLabel.setText(""); // NOI18N
+                statusLabel.setToolTipText(""); // NOI18N
                 statusLabel.setIcon(null);
             }
         });
@@ -319,14 +334,15 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
         if (source instanceof VagrantStatus) {
             VagrantStatus vagrantStatus = (VagrantStatus) source;
             statusCache.clear();
-            for (Pair<Project, String> status : vagrantStatus.getAll()) {
+            for (Pair<Project, StatusLine> status : vagrantStatus.getAll()) {
                 Project p = status.first();
-                String s = status.second();
+                StatusLine statusLine = status.second();
                 String existingStatus = statusCache.get(p);
+                String allStatus = statusLine.toString();
                 if (existingStatus != null) {
-                    s = String.format("%s, %s", existingStatus, s); // NOI18N
+                    allStatus = String.format("%s, %s", existingStatus, statusLine.toString()); // NOI18N
                 }
-                statusCache.put(p, s);
+                statusCache.put(p, allStatus);
             }
             if (project != null) {
                 setStatus(statusCache.get(project));
