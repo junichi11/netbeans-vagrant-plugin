@@ -70,6 +70,9 @@ import org.netbeans.api.extexecution.input.InputProcessor;
 import org.netbeans.api.extexecution.input.InputProcessors;
 import org.netbeans.api.extexecution.input.LineProcessor;
 import org.netbeans.api.project.Project;
+import org.netbeans.api.project.ProjectInformation;
+import org.netbeans.api.project.ProjectUtils;
+import org.netbeans.api.project.ui.OpenProjects;
 import org.netbeans.modules.vagrant.StatusLine;
 import org.netbeans.modules.vagrant.VagrantStatus;
 import org.netbeans.modules.vagrant.VagrantVersion;
@@ -161,13 +164,6 @@ public final class Vagrant {
     private String title = ""; // NOI18N
     // descriptor
     private ExecutionDescriptor descriptor;
-    private static final ExecutionDescriptor DEFAULT_EXECUTION_DESCRIPTOR = new ExecutionDescriptor()
-            .optionsPath(UiUtils.OPTIONS_PATH)
-            .controllable(true)
-            .frontWindow(true)
-            .frontWindowOnError(true)
-            .inputVisible(true)
-            .showProgress(true);
     private final ChangeSupport changeSupport = new ChangeSupport(this);
     private Project project;
     private boolean noInfo = false;
@@ -370,14 +366,24 @@ public final class Vagrant {
         return runCommand(project, SSH_CONFIG_COMMAND, Bundle.Vagrant_run_ssh_config());
     }
 
-    @NbBundle.Messages("Vagrant.run.destroy=Vagrant (destroy)")
+    @NbBundle.Messages({
+        "Vagrant.run.destroy=Vagrant (destroy)",
+        "# {0} - name",
+        "Vagrant.run.destroy.info=vagrant destroy command was run ({0})"
+    })
     public Future<Integer> destroy(Project project) {
         // require a TTY
+        ProjectInformation information = ProjectUtils.getInformation(project);
+        String name = information.getName();
+        LOGGER.log(Level.INFO, Bundle.Vagrant_run_destroy_info(name));
         return runCommand(project, DESTROY_COMMAND, Bundle.Vagrant_run_destroy(), Collections.singletonList(FORCE_PARAM));
     }
 
     public Future<Integer> destroy(Project project, String name) {
         // require a TTY
+        ProjectInformation information = ProjectUtils.getInformation(project);
+        String projectName = information.getName();
+        LOGGER.log(Level.INFO, Bundle.Vagrant_run_destroy_info(projectName));
         return runCommand(project, DESTROY_COMMAND, Bundle.Vagrant_run_destroy(), Arrays.asList(FORCE_PARAM, name));
     }
 
@@ -572,7 +578,8 @@ public final class Vagrant {
     }
 
     /**
-     * Get status of VMs.
+     * Get status of VMs. Warning: This method takes a few time. Don't invoke
+     * another command until this method is finished.
      *
      * @param project
      * @return status lines
@@ -795,7 +802,23 @@ public final class Vagrant {
         this.title = title;
         additionalParameters(parameters);
 
-        return run(getExecutionDescriptor(project));
+        return run(getExecutionDescriptor(project, isUpdateStatus(command, project)));
+    }
+
+    /**
+     * Don't update status if project is not opened and command is halt.
+     *
+     * @param command
+     * @param project
+     * @return {@code false} if halt command and project is opened, {@code true}
+     * otherwise
+     */
+    private boolean isUpdateStatus(String command, Project project) {
+        if (command.equals(HALT_COMMAND)) {
+            OpenProjects projects = OpenProjects.getDefault();
+            return projects.isProjectOpen(project);
+        }
+        return true;
     }
 
     /**
@@ -812,14 +835,27 @@ public final class Vagrant {
         return ExecutionService.newService(processBuilder, descriptor, title).run();
     }
 
-    private ExecutionDescriptor getExecutionDescriptor(Project project) {
+    private ExecutionDescriptor getExecutionDescriptor(Project project, boolean isUpdate) {
         if (descriptor == null) {
-            return DEFAULT_EXECUTION_DESCRIPTOR
+            ExecutionDescriptor executionDescriptor = createDefaultExecutionDescriptor()
                     .outProcessorFactory(getInfoProcessorFactory())
-                    .postExecution(new RunnableImpl(project))
                     .preExecution(new RunnableImpl());
+            if (isUpdate) {
+                executionDescriptor = executionDescriptor.postExecution(new RunnableImpl(project));
+            }
+            return executionDescriptor;
         }
         return descriptor;
+    }
+
+    private ExecutionDescriptor createDefaultExecutionDescriptor() {
+        return new ExecutionDescriptor()
+                .optionsPath(UiUtils.OPTIONS_PATH)
+                .controllable(true)
+                .frontWindow(true)
+                .frontWindowOnError(true)
+                .inputVisible(true)
+                .showProgress(true);
     }
 
     /**
