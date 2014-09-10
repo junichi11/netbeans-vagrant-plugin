@@ -84,27 +84,36 @@ public final class VagrantStatusImpl implements VagrantStatus {
             });
     private static final RequestProcessor RP = new RequestProcessor(VagrantStatusImpl.class);
     private static final Logger LOGGER = Logger.getLogger(VagrantStatusImpl.class.getName());
+    private final Object lock = new Object();
 
     @Override
-    public synchronized List<Pair<Project, StatusLine>> getAll() {
+    public List<Pair<Project, StatusLine>> getAll() {
         ArrayList<Pair<Project, StatusLine>> allList = new ArrayList<Pair<Project, StatusLine>>();
-        for (List<Pair<Project, StatusLine>> list : VAGRANT_STATUS.values()) {
-            allList.addAll(list);
+        synchronized (lock) {
+            for (List<Pair<Project, StatusLine>> list : VAGRANT_STATUS.values()) {
+                allList.addAll(list);
+            }
         }
+
         return allList;
     }
 
     @Override
-    public synchronized List<StatusLine> get(Project project) {
+    public List<StatusLine> get(Project project) {
         ArrayList<StatusLine> allStatus = new ArrayList<StatusLine>();
-        List<Pair<Project, StatusLine>> statusList = VAGRANT_STATUS.get(project);
-        for (Pair<Project, StatusLine> status : statusList) {
-            allStatus.add(status.second());
+        synchronized (lock) {
+            List<Pair<Project, StatusLine>> statusList = VAGRANT_STATUS.get(project);
+            if (statusList == null) {
+                return allStatus;
+            }
+            for (Pair<Project, StatusLine> status : statusList) {
+                allStatus.add(status.second());
+            }
         }
         return allStatus;
     }
 
-    private synchronized void add(Project project) {
+    private void add(Project project) {
         try {
             Vagrant vagrant = Vagrant.getDefault();
             List<StatusLine> statusLines = vagrant.getStatusLines(project);
@@ -113,21 +122,27 @@ public final class VagrantStatusImpl implements VagrantStatus {
                 Pair<Project, StatusLine> pair = Pair.of(project, statusLine);
                 list.add(pair);
             }
-            VAGRANT_STATUS.put(project, list);
+            synchronized (lock) {
+                VAGRANT_STATUS.put(project, list);
+            }
         } catch (InvalidVagrantExecutableException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
     @Override
-    public synchronized void remove(Project project) {
-        VAGRANT_STATUS.remove(project);
+    public void remove(Project project) {
+        synchronized (lock) {
+            VAGRANT_STATUS.remove(project);
+        }
         fireChange();
     }
 
     @Override
-    public synchronized void refresh() {
-        VAGRANT_STATUS.clear();
+    public void refresh() {
+        synchronized (lock) {
+            VAGRANT_STATUS.clear();
+        }
         if (!isVagrantAvailable()) {
             return;
         }
@@ -148,7 +163,7 @@ public final class VagrantStatusImpl implements VagrantStatus {
     }
 
     @Override
-    public synchronized void update(final Project project) {
+    public void update(final Project project) {
         if (!isVagrantAvailable() || !VagrantUtils.hasVagrantfile(project)) {
             return;
         }
@@ -156,7 +171,9 @@ public final class VagrantStatusImpl implements VagrantStatus {
 
             @Override
             public void run() {
-                VAGRANT_STATUS.remove(project);
+                synchronized (lock) {
+                    VAGRANT_STATUS.remove(project);
+                }
                 add(project);
                 fireChange();
             }
@@ -164,8 +181,10 @@ public final class VagrantStatusImpl implements VagrantStatus {
     }
 
     @Override
-    public synchronized void clear() {
-        VAGRANT_STATUS.clear();
+    public void clear() {
+        synchronized (lock) {
+            VAGRANT_STATUS.clear();
+        }
         fireChange();
     }
 
