@@ -104,15 +104,21 @@ public class VagrantLookupProvider implements LookupProvider {
                 if (project == null || StringUtils.isEmpty(options.getVagrantPath())) {
                     return;
                 }
+                VagrantStatus vagrantStatus = getVagrantStatus();
                 try {
-                    Vagrant vagrant = Vagrant.getDefault();
-                    List<StatusLine> statusLines = vagrant.getStatusLines(project);
-                    // status confirmation
-                    for (StatusLine statusLine : statusLines) {
-                        if (statusLine.getStatus().contains("running")) { // NOI18N
-                            ProjectClosedAction closedAction = VagrantPreferences.getProjectClosedAction(project);
-                            closedAction.run(project, vagrant);
-                            break;
+                    if (vagrantStatus != null) {
+                        // use cache
+                        // Vagrant environment may be broken if anoter command is run
+                        // when Vagrant.getStatusLines() is running
+                        List<StatusLine> statusLines = vagrantStatus.get(project);
+                        Vagrant vagrant = Vagrant.getDefault();
+                        // status confirmation
+                        for (StatusLine statusLine : statusLines) {
+                            if (statusLine.getStatus().contains("running")) { // NOI18N
+                                ProjectClosedAction closedAction = VagrantPreferences.getProjectClosedAction(project);
+                                closedAction.run(project, vagrant);
+                                break;
+                            }
                         }
                     }
                 } catch (InvalidVagrantExecutableException ex) {
@@ -120,7 +126,6 @@ public class VagrantLookupProvider implements LookupProvider {
                 }
 
                 // remove status
-                VagrantStatus vagrantStatus = getVagrantStatus();
                 if (vagrantStatus != null) {
                     vagrantStatus.remove(project);
                 }
