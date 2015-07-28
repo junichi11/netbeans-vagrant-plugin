@@ -73,6 +73,7 @@ import org.openide.util.lookup.Lookups;
     "org-netbeans-modules-web-project",
     "org.netbeans.modules.web.clientproject",
     "org-netbeans-modules-web-clientproject",
+    "org-netbeans-modules-ruby-rubyproject",
     "com-tropyx-nb_puppet"
 })
 public class VagrantLookupProvider implements LookupProvider {
