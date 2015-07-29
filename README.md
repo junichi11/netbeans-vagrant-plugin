@@ -175,7 +175,7 @@ So, please run vagrant command with terminal if this message is shown.
 
 ### Vagrant could not detect VirtualBox!
 
-If the below message is shown, please have a look at #45.
+If the below message is shown, please have a look at [#45](https://github.com/junichi11/netbeans-vagrant-plugin/issues/45).
 
 ```
 /usr/bin/vagrant up
