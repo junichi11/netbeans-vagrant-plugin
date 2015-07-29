@@ -173,9 +173,26 @@ Probably, the following message will be shown *"sudo: no tty present and no askp
 If passwd is visible, we can avoid this. **But this is not good.**
 So, please run vagrant command with terminal if this message is shown.
 
+### Vagrant could not detect VirtualBox!
+
+If the below message is shown, please have a look at #45.
+
+```
+/usr/bin/vagrant up
+The provider 'virtualbox' that was requested to back the machine
+'default' is reporting that it isn't usable on this system. The
+reason is shown below:
+
+Vagrant could not detect VirtualBox! Make sure VirtualBox is properly installed.
+Vagrant uses the VBoxManage binary that ships with VirtualBox, and requires
+this to be available on the PATH. If VirtualBox is installed, please find the
+VBoxManage binary and add it to the PATH environmental variable.
+Done.
+```
+
 ## Issues
 
-If you hava some problems, please submit them to the github issue tracker.
+If you hava some problems, please submit them to the [GitHub issue tracker](https://github.com/junichi11/netbeans-vagrant-plugin/issues) .
 (Please don't submit them to NetBeans bugzilla.)
 
 ## Version number
