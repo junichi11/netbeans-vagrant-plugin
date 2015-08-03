@@ -76,7 +76,9 @@ public class VagrantCustomizerProvider implements ProjectCustomizer.CompositeCat
         @ProjectCustomizer.CompositeCategoryProvider.Registration(projectType = "org.netbeans.modules.web.clientproject", position = 5000),
         @ProjectCustomizer.CompositeCategoryProvider.Registration(projectType = "org-netbeans-modules-web-clientproject", position = 5000),
         @ProjectCustomizer.CompositeCategoryProvider.Registration(projectType = "org-netbeans-modules-ruby-rubyproject", position = 5000),
-        @ProjectCustomizer.CompositeCategoryProvider.Registration(projectType = "com-tropyx-nb_puppet", position = 5000),})
+        @ProjectCustomizer.CompositeCategoryProvider.Registration(projectType = "org-netbeans-modules-ruby-railsprojects", position = 5000),
+        @ProjectCustomizer.CompositeCategoryProvider.Registration(projectType = "com-tropyx-nb_puppet", position = 5000)
+    })
     public static VagrantCustomizerProvider createVagrant() {
         return new VagrantCustomizerProvider();
     }
