@@ -65,10 +65,9 @@ import javax.swing.event.ChangeListener;
 import org.netbeans.api.annotations.common.CheckForNull;
 import org.netbeans.api.extexecution.ExecutionDescriptor;
 import org.netbeans.api.extexecution.ExecutionService;
-import org.netbeans.api.extexecution.ExternalProcessBuilder;
-import org.netbeans.api.extexecution.input.InputProcessor;
-import org.netbeans.api.extexecution.input.InputProcessors;
-import org.netbeans.api.extexecution.input.LineProcessor;
+import org.netbeans.api.extexecution.base.input.InputProcessor;
+import org.netbeans.api.extexecution.base.input.InputProcessors;
+import org.netbeans.api.extexecution.base.input.LineProcessor;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectInformation;
 import org.netbeans.api.project.ProjectUtils;
@@ -892,20 +891,20 @@ public final class Vagrant {
         }
 
         // other commands
-        ExternalProcessBuilder processBuilder = createProcessBuilder();
+        org.netbeans.api.extexecution.base.ProcessBuilder processBuilder = createProcessBuilder();
         if (processBuilder == null) {
             return null;
         }
-        processBuilder = processBuilder.addArgument(command);
+        List<String> arguments = new ArrayList<String>();
+        arguments.add(command);
         fullCommand.add(command);
 
-        for (String param : additionalParameters) {
-            processBuilder = processBuilder.addArgument(param);
-        }
+        arguments.addAll(additionalParameters);
         fullCommand.addAll(additionalParameters);
 
+        processBuilder.setArguments(arguments);
         if (workDir != null) {
-            processBuilder = processBuilder.workingDirectory(workDir);
+            processBuilder.setWorkingDirectory(workDir.getAbsolutePath());
         }
         return processBuilder;
     }
@@ -913,11 +912,13 @@ public final class Vagrant {
     /**
      * Create ProcessBuilder.
      *
-     * @return ExternalProcessBuilder
+     * @return ProcessBuilder
      */
-    private ExternalProcessBuilder createProcessBuilder() {
+    private org.netbeans.api.extexecution.base.ProcessBuilder createProcessBuilder() {
         fullCommand.add(path);
-        return new ExternalProcessBuilder(path);
+        org.netbeans.api.extexecution.base.ProcessBuilder processBuilder = org.netbeans.api.extexecution.base.ProcessBuilder.getLocal();
+        processBuilder.setExecutable(path);
+        return processBuilder;
     }
 
     /**
@@ -926,8 +927,8 @@ public final class Vagrant {
      * @param lineProcessor
      * @return InputProcessorFactory
      */
-    private ExecutionDescriptor.InputProcessorFactory getOutputProcessorFactory(final LineProcessor lineProcessor) {
-        return new ExecutionDescriptor.InputProcessorFactory() {
+    private ExecutionDescriptor.InputProcessorFactory2 getOutputProcessorFactory(final LineProcessor lineProcessor) {
+        return new ExecutionDescriptor.InputProcessorFactory2() {
             @Override
             public InputProcessor newInputProcessor(InputProcessor defaultProcessor) {
                 return InputProcessors.ansiStripping(InputProcessors.bridge(lineProcessor));
@@ -940,11 +941,11 @@ public final class Vagrant {
      *
      * @return InputProcessFactory
      */
-    private ExecutionDescriptor.InputProcessorFactory getInfoProcessorFactory() {
+    private ExecutionDescriptor.InputProcessorFactory2 getInfoProcessorFactory() {
         if (noInfo) {
             return null;
         }
-        return new ExecutionDescriptor.InputProcessorFactory() {
+        return new ExecutionDescriptor.InputProcessorFactory2() {
             @Override
             public InputProcessor newInputProcessor(InputProcessor defaultProcessor) {
                 if (SHARE_COMMAND.equals(command)) {

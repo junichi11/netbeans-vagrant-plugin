@@ -51,13 +51,19 @@ import org.openide.util.lookup.ServiceProvider;
  */
 @ServiceProvider(service = MIMEResolver.class)
 public class VagrantfileMIMEResolver extends MIMEResolver {
+    
+    private static final String MIME_TYPE_RUBY = "text/x-ruby"; // NOI18N
+
+    public VagrantfileMIMEResolver() {
+        super(MIME_TYPE_RUBY);
+    }
 
     @Override
     public String findMIMEType(FileObject fo) {
         if (fo != null) {
             String name = fo.getNameExt();
             if (!fo.isFolder() && "vagrantfile".equals(name.toLowerCase())) { // NOI18N
-                return "text/x-ruby"; // NOI18N
+                return MIME_TYPE_RUBY;
             }
         }
         return null;

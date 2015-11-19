@@ -10,7 +10,7 @@ Please check the following site:
 
 ## Requirements
 
-- NetBeans 8.0 or newer
+- NetBeans 8.1 or newer
 - Vagrant 1.6.0 or newer
 
 ## Install
