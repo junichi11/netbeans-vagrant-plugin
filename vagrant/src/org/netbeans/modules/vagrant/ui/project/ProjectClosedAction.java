@@ -84,12 +84,13 @@ public enum ProjectClosedAction {
 
                         @Override
                         public void run() {
-                            NotifyDescriptor.Message message = new NotifyDescriptor.Message(
+                            NotifyDescriptor.Confirmation confirmation = new NotifyDescriptor.Confirmation(
                                     Bundle.ProjectClosedAction_closed_message(project.getProjectDirectory().getName()),
+                                    NotifyDescriptor.YES_NO_OPTION,
                                     NotifyDescriptor.QUESTION_MESSAGE
                             );
                             // run halt command
-                            if (DialogDisplayer.getDefault().notify(message) == NotifyDescriptor.OK_OPTION) {
+                            if (DialogDisplayer.getDefault().notify(confirmation) == NotifyDescriptor.YES_OPTION) {
                                 vagrant.halt(project);
                             }
                         }
