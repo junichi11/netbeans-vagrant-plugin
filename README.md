@@ -44,7 +44,7 @@ We can also set Vagrant Root with Init Action.
 
 Tools > Options > Miscellaneous > Vagrant
 
-![options](https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant/screenshots/nb-vagrant-options.png)
+![options](screenshots/nb-vagrant-options.png)
 
 - General : set a vagrant path
 - Boxes : manage boxes
@@ -52,7 +52,7 @@ Tools > Options > Miscellaneous > Vagrant
 
 ## Available commands with context menu action
 
-![context menu](https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant/screenshots/nb-vagrant-context-menu.png)
+![context menu](screenshots/nb-vagrant-context-menu.png)
 
 - up
 - reload
@@ -74,11 +74,11 @@ Tools > Options > Miscellaneous > Vagrant
 
 Please use `run command` action.
 
-![run command](https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant/screenshots/nb-vagrant-run-command.png)
+![run command](screenshots/nb-vagrant-run-command.png)
 
 ## Boxes
 
-![add box](https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant/screenshots/nb-vagrant-add-box.png)
+![add box](screenshots/nb-vagrant-add-box.png)
 
 ### add
 
@@ -96,7 +96,7 @@ We can remove boxes at Vagrant Options.
 
 ## Plugins
 
-![run command](https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant/screenshots/nb-vagrant-install-plugin.png)
+![run command](screenshots/nb-vagrant-install-plugin.png)
 
 We can manage plugins on Options window.
 
@@ -118,7 +118,7 @@ Plase select plugin name, and click `update` button.
 Vagrant status is displayed on the statusbar.If project root has a Vagrantfile, run `vagrant status`.
 Otherwise, just display "not created". We can reload the status display if we double-click it.
 
-![run command](https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant/screenshots/nb-vagrant-statusbar.png)
+![run command](screenshots/nb-vagrant-statusbar.png)
 
 ### Note
 
@@ -126,7 +126,7 @@ Will take a little time when you access files or directories for your project at
 
 ## Syntax Highlight for Vagrantfile
 
-![syntax highlight](https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant/screenshots/nb-vagrant-syntax-highlight-vagrantfile.png)
+![syntax highlight](screenshots/nb-vagrant-syntax-highlight-vagrantfile.png)
 
 Require Ruby plugin (http://plugins.netbeans.org/plugin/38549/ruby-and-rails)
 
@@ -140,7 +140,7 @@ We can set an action when project is closed to the project properties.
 
 We can also run this action when we close the NetBeans. If you set `halt (ask)`, cofirmation dialog is shown.
 
-![halt confirmation dialog](https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant/screenshots/nb-vagrant-closing-confirmation.png)
+![halt confirmation dialog](screenshots/nb-vagrant-closing-confirmation.png)
 
 ## Status management window
 
@@ -153,7 +153,7 @@ If you want to reopen the window after you close it, please check `Windows > Vag
 
 Please reboot NetBeans or reopen projects if status is not shown at the statusbar when you install this plugin at first.
 
-![Vagrant statuses](https://dl.dropboxusercontent.com/u/10953443/netbeans/vagrant/screenshots/nb-vagrant-status-management-window.png)
+![Vagrant statuses](screenshots/nb-vagrant-status-management-window.png)
 
 ## Troubleshooting
 
