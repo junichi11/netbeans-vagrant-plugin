@@ -720,10 +720,12 @@ public final class Vagrant {
      */
     public static boolean isVagrantScript(String path, boolean warn) {
         if (StringUtils.isEmpty(path)) {
+            LOGGER.log(Level.WARNING, "vagrant path is empty: {0}", path); // NOI18N
             return false;
         }
         File file = new File(path);
         if (!file.exists()) {
+            LOGGER.log(Level.WARNING, "Vagrant path does not exist: {0}", path); // NOI18N
             return false;
         }
         Vagrant vagrant = new Vagrant(path)
@@ -737,7 +739,7 @@ public final class Vagrant {
             }
             return false;
         }
-        return !StringUtils.isEmpty(version) && version.toLowerCase().contains("vagrant");
+        return !StringUtils.isEmpty(version) && version.toLowerCase().contains("vagrant"); // NOI18N
     }
 
     /**
