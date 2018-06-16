@@ -614,7 +614,7 @@ public final class Vagrant {
 
     private void setWorkDir(Project project) {
         // set working directory
-        String vagrantPath = VagrantPreferences.getVagrantPath(project);
+        String vagrantPath = VagrantPreferences.getVagrantAbsolutePath(project);
         if (StringUtils.isEmpty(vagrantPath)) {
             workDir(FileUtil.toFile(project.getProjectDirectory()));
         } else {
@@ -767,7 +767,7 @@ public final class Vagrant {
     public Future<Integer> runCommand(Project project, String command, String title, List<String> params) {
         if (project != null && workDir == null) {
             FileObject workingDirectory = project.getProjectDirectory();
-            String vagrantPath = VagrantPreferences.getVagrantPath(project);
+            String vagrantPath = VagrantPreferences.getVagrantAbsolutePath(project);
             if (workingDirectory != null) {
                 // check only custom path
                 boolean hasVagrantfile = true;

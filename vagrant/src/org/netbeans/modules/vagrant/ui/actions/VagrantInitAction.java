@@ -143,7 +143,7 @@ public final class VagrantInitAction extends VagrantAction implements ChangeList
     }
 
     private boolean existsVagrant(Project project) {
-        String vagrantPath = VagrantPreferences.getVagrantPath(project);
+        String vagrantPath = VagrantPreferences.getVagrantAbsolutePath(project);
         if (!StringUtils.isEmpty(vagrantPath)) {
             showWarningDialog();
             return true;

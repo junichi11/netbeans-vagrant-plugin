@@ -53,6 +53,7 @@ import org.netbeans.modules.vagrant.ui.project.ProjectClosedAction;
 import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import org.openide.filesystems.FileChooserBuilder;
+import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.ChangeSupport;
 import org.openide.util.NbBundle;
@@ -84,7 +85,6 @@ public final class VagrantCustomizerPanel extends JPanel {
     }
 
     @NbBundle.Messages({
-        "VagrantCustomizerPanel.not.absolute=The path must be absolute path.",
         "VagrantCustomizerPanel.notFound.path=Existing path must be set.",
         "VagrantCustomizerPanel.not.directory=The path must be directory.",
         "VagrantCustomizerPanel.notFound.vagrantfile=Vagrant root must be had Vagrantfile."})
@@ -99,8 +99,10 @@ public final class VagrantCustomizerPanel extends JPanel {
 
         File file = new File(vagrantRootPath);
         if (!file.isAbsolute()) {
-            errorMessage = Bundle.VagrantCustomizerPanel_not_absolute();
-            return;
+            FileObject projectDirectory = project.getProjectDirectory();
+            FileObject fileObject = projectDirectory.getFileObject(vagrantRootPath);
+            FileObject targetFileObject = fileObject.getFileObject(vagrantRootPath);
+            file = FileUtil.toFile(targetFileObject);
         }
 
         if (!file.exists()) {
