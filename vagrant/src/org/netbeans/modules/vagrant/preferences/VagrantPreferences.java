@@ -42,12 +42,15 @@
 package org.netbeans.modules.vagrant.preferences;
 
 import com.google.gson.Gson;
+import java.io.File;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.modules.vagrant.command.RunCommandHistory;
 import org.netbeans.modules.vagrant.ui.project.ProjectClosedAction;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
 
 /**
@@ -62,6 +65,28 @@ public final class VagrantPreferences {
     private static final String RUN_COMMAND_HISTORY = "run-command-history"; // NOI18N
 
     private VagrantPreferences() {
+    }
+
+    public static String getVagrantAbsolutePath(Project project) {
+        FileObject projectDirectory = project.getProjectDirectory();
+        String vagrantPath = getVagrantPath(project);
+        if (vagrantPath == null) {
+            return null;
+        }
+
+        File file = new File(vagrantPath);
+        if (file.isAbsolute()) {
+            return vagrantPath;
+        }
+
+        if (projectDirectory != null) {
+            FileObject fileObject = projectDirectory.getFileObject(vagrantPath);
+            if (fileObject != null) {
+                file = FileUtil.toFile(fileObject);
+                return file.getAbsolutePath();
+            }
+        }
+        return null;
     }
 
     public static String getVagrantPath(Project project) {

@@ -614,7 +614,7 @@ public final class Vagrant {
 
     private void setWorkDir(Project project) {
         // set working directory
-        String vagrantPath = VagrantPreferences.getVagrantPath(project);
+        String vagrantPath = VagrantPreferences.getVagrantAbsolutePath(project);
         if (StringUtils.isEmpty(vagrantPath)) {
             workDir(FileUtil.toFile(project.getProjectDirectory()));
         } else {
@@ -720,10 +720,12 @@ public final class Vagrant {
      */
     public static boolean isVagrantScript(String path, boolean warn) {
         if (StringUtils.isEmpty(path)) {
+            LOGGER.log(Level.WARNING, "vagrant path is empty: {0}", path); // NOI18N
             return false;
         }
         File file = new File(path);
         if (!file.exists()) {
+            LOGGER.log(Level.WARNING, "Vagrant path does not exist: {0}", path); // NOI18N
             return false;
         }
         Vagrant vagrant = new Vagrant(path)
@@ -737,7 +739,7 @@ public final class Vagrant {
             }
             return false;
         }
-        return !StringUtils.isEmpty(version) && version.toLowerCase().contains("vagrant");
+        return !StringUtils.isEmpty(version) && version.toLowerCase().contains("vagrant"); // NOI18N
     }
 
     /**
@@ -765,7 +767,7 @@ public final class Vagrant {
     public Future<Integer> runCommand(Project project, String command, String title, List<String> params) {
         if (project != null && workDir == null) {
             FileObject workingDirectory = project.getProjectDirectory();
-            String vagrantPath = VagrantPreferences.getVagrantPath(project);
+            String vagrantPath = VagrantPreferences.getVagrantAbsolutePath(project);
             if (workingDirectory != null) {
                 // check only custom path
                 boolean hasVagrantfile = true;

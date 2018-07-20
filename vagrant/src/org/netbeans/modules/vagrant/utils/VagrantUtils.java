@@ -220,7 +220,7 @@ public final class VagrantUtils {
      * @return
      */
     public static FileObject getVagrantRoot(Project project) {
-        String vagrantPath = VagrantPreferences.getVagrantPath(project);
+        String vagrantPath = VagrantPreferences.getVagrantAbsolutePath(project);
         if (StringUtils.isEmpty(vagrantPath)) {
             return project.getProjectDirectory();
         }
