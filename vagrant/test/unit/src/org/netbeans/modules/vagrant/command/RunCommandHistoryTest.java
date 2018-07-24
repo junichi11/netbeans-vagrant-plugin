@@ -44,7 +44,6 @@ package org.netbeans.modules.vagrant.command;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import static junit.framework.Assert.assertEquals;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

@@ -42,7 +42,6 @@
 package org.netbeans.modules.vagrant.utils;
 
 import java.io.IOException;
-import static junit.framework.Assert.assertEquals;
 import org.junit.Test;
 import org.netbeans.junit.NbTestCase;
 import org.openide.filesystems.FileObject;
