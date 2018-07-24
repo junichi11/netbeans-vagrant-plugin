@@ -98,7 +98,7 @@ public class NetBeansClosingDialog extends JDialog {
         setTitle(Bundle.NetBeansClosingDialog_title());
 
         // add projects to list
-        DefaultListModel<Pair<Project, StatusLine>> model = new DefaultListModel<Pair<Project, StatusLine>>();
+        DefaultListModel<Pair<Project, StatusLine>> model = new DefaultListModel<>();
         for (Pair<Project, StatusLine> s : status) {
             model.addElement(s);
         }

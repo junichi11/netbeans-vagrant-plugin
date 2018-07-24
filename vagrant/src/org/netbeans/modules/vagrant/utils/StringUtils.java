@@ -97,7 +97,7 @@ public final class StringUtils {
         if (target.isEmpty()) {
             return Collections.emptyList();
         }
-        return new ArrayList<String>(Arrays.asList(target.split(delimiter)));
+        return new ArrayList<>(Arrays.asList(target.split(delimiter)));
     }
 
     /**

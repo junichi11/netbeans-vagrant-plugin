@@ -118,8 +118,8 @@ public final class VagrantInstaller extends ModuleInstall {
             return Status.getInstance().setShutdown();
         }
 
-        ArrayList<Pair<Project, StatusLine>> runningProjects = new ArrayList<Pair<Project, StatusLine>>();
-        ArrayList<Pair<Project, StatusLine>> haltAskProjects = new ArrayList<Pair<Project, StatusLine>>();
+        ArrayList<Pair<Project, StatusLine>> runningProjects = new ArrayList<>();
+        ArrayList<Pair<Project, StatusLine>> haltAskProjects = new ArrayList<>();
         getRunningProejcts(haltAskProjects, runningProjects);
 
         // halt-ask?

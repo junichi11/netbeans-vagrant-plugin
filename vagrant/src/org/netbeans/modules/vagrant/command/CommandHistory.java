@@ -69,7 +69,7 @@ public interface CommandHistory {
         }
 
         public List<String> getParameters() {
-            return new ArrayList<String>(parameters);
+            return new ArrayList<>(parameters);
         }
 
         @Override

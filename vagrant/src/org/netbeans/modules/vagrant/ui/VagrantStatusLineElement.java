@@ -88,7 +88,7 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
     private Lookup.Result<DataObject> result = null;
     private final JLabel statusLabel = new JLabel(""); // NOI18N
     private Project project;
-    private final Map<Project, String> statusCache = new HashMap<Project, String>();
+    private final Map<Project, String> statusCache = new HashMap<>();
     private boolean isShowStatus;
     private static final RequestProcessor RP = new RequestProcessor(VagrantStatusLineElement.class);
 

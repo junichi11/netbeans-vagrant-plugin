@@ -106,7 +106,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
 
     private static final long serialVersionUID = -5325086456659205908L;
     private static final RequestProcessor RP = new RequestProcessor(StatusManagementTopComponent.class);
-    private final DefaultListModel<Pair<Project, StatusLine>> model = new DefaultListModel<Pair<Project, StatusLine>>();
+    private final DefaultListModel<Pair<Project, StatusLine>> model = new DefaultListModel<>();
     private final ProjectListCellRenderer cellRenderer = new ProjectListCellRenderer();
     private static final Logger LOGGER = Logger.getLogger(StatusManagementTopComponent.class.getName());
 

@@ -158,7 +158,7 @@ public final class Vagrant {
     public static final String NAME = "vagrant"; // NOI18N
     public static final String LONG_NAME = NAME + VagrantUtils.getScriptExt();
     private File workDir = null;
-    private List<String> additionalParameters = new ArrayList<String>();
+    private List<String> additionalParameters = new ArrayList<>();
     private String command = ""; // NOI18N
     private String title = ""; // NOI18N
     // descriptor
@@ -166,7 +166,7 @@ public final class Vagrant {
     private final ChangeSupport changeSupport = new ChangeSupport(this);
     private Project project;
     private boolean noInfo = false;
-    private final List<String> fullCommand = new ArrayList<String>();
+    private final List<String> fullCommand = new ArrayList<>();
     private Versionable version;
 
     public Vagrant(String path) {
@@ -249,7 +249,7 @@ public final class Vagrant {
         "Vagrant.run.box=Vagrant (box {0})"
     })
     public Future<Integer> box(BOX subcommand, List<String> params) {
-        ArrayList<String> allParams = new ArrayList<String>();
+        ArrayList<String> allParams = new ArrayList<>();
         allParams.add(subcommand.getCommand());
         allParams.addAll(params);
         return runCommand(null, BOX_COMMAND, Bundle.Vagrant_run_box(subcommand.getCommand()), allParams);
@@ -260,7 +260,7 @@ public final class Vagrant {
         "Vagrant.run.plugin=Vagrant (plugin {0})"
     })
     public Future<Integer> plugin(PLUGIN subcommand, List<String> params) {
-        ArrayList<String> allParams = new ArrayList<String>();
+        ArrayList<String> allParams = new ArrayList<>();
         allParams.add(subcommand.getCommand());
         allParams.addAll(params);
         return runCommand(null, PLUGIN_COMMAND, Bundle.Vagrant_run_plugin(subcommand.getCommand()), allParams);
@@ -268,7 +268,7 @@ public final class Vagrant {
 
     @NbBundle.Messages("Vagrant.run.init=Vagrant (init)")
     public Future<Integer> init(Project project, String boxName, String boxUrl) {
-        ArrayList<String> params = new ArrayList<String>();
+        ArrayList<String> params = new ArrayList<>();
         if (!boxName.isEmpty()) {
             params.add(boxName);
         } else {
@@ -292,7 +292,7 @@ public final class Vagrant {
     }
 
     public Future<Integer> up(Project project, String name, String provider) {
-        List<String> params = new ArrayList<String>();
+        List<String> params = new ArrayList<>();
         if (!StringUtils.isEmpty(provider)) {
             params.add("--provider");
             params.add(provider);
@@ -505,7 +505,7 @@ public final class Vagrant {
 
     private List<String> getCommands(List<String> lines, boolean isListCommands) {
         boolean isStartPosition = false;
-        List<String> commands = new LinkedList<String>();
+        List<String> commands = new LinkedList<>();
         for (String line : lines) {
             if (line.toLowerCase().matches("\\A.*(subcommands|common commands).*\\z")) { // NOI18N
                 isStartPosition = true;
@@ -584,7 +584,7 @@ public final class Vagrant {
      * @return status lines
      */
     public List<StatusLine> getStatusLines(Project project) {
-        List<StatusLine> statusLines = new ArrayList<StatusLine>();
+        List<StatusLine> statusLines = new ArrayList<>();
         if (project == null) {
             return statusLines;
         }
@@ -787,7 +787,7 @@ public final class Vagrant {
             }
         }
         List<String> commands = StringUtils.explode(command, " "); // NOI18N
-        List<String> parameters = new ArrayList<String>();
+        List<String> parameters = new ArrayList<>();
         boolean isFirst = true;
         for (String c : commands) {
             if (isFirst) {
@@ -880,7 +880,7 @@ public final class Vagrant {
         // VM status will be "aborted".
         // Use ProcessBuilder class(see: ProcessLounch class) as a workaround.
         if (UP_COMMAND.equals(command) || RESUME_COMMAND.equals(command)) {
-            ArrayList<String> allParams = new ArrayList<String>();
+            ArrayList<String> allParams = new ArrayList<>();
             allParams.add(path);
             allParams.add(command);
             allParams.addAll(additionalParameters);
@@ -897,7 +897,7 @@ public final class Vagrant {
         if (processBuilder == null) {
             return null;
         }
-        List<String> arguments = new ArrayList<String>();
+        List<String> arguments = new ArrayList<>();
         arguments.add(command);
         fullCommand.add(command);
 
@@ -981,7 +981,7 @@ public final class Vagrant {
 
     private static class VagrantLineProcessor implements LineProcessor {
 
-        private final ArrayList<String> list = new ArrayList<String>();
+        private final ArrayList<String> list = new ArrayList<>();
 
         @Override
         public void processLine(String line) {

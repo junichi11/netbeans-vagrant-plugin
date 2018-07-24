@@ -88,7 +88,7 @@ public final class VagrantStatusImpl implements VagrantStatus {
 
     @Override
     public List<Pair<Project, StatusLine>> getAll() {
-        ArrayList<Pair<Project, StatusLine>> allList = new ArrayList<Pair<Project, StatusLine>>();
+        ArrayList<Pair<Project, StatusLine>> allList = new ArrayList<>();
         synchronized (lock) {
             for (List<Pair<Project, StatusLine>> list : VAGRANT_STATUS.values()) {
                 allList.addAll(list);
@@ -100,7 +100,7 @@ public final class VagrantStatusImpl implements VagrantStatus {
 
     @Override
     public List<StatusLine> get(Project project) {
-        ArrayList<StatusLine> allStatus = new ArrayList<StatusLine>();
+        ArrayList<StatusLine> allStatus = new ArrayList<>();
         synchronized (lock) {
             List<Pair<Project, StatusLine>> statusList = VAGRANT_STATUS.get(project);
             if (statusList == null) {
@@ -117,7 +117,7 @@ public final class VagrantStatusImpl implements VagrantStatus {
         try {
             Vagrant vagrant = Vagrant.getDefault();
             List<StatusLine> statusLines = vagrant.getStatusLines(project);
-            ArrayList<Pair<Project, StatusLine>> list = new ArrayList<Pair<Project, StatusLine>>(statusLines.size());
+            ArrayList<Pair<Project, StatusLine>> list = new ArrayList<>(statusLines.size());
             for (StatusLine statusLine : statusLines) {
                 Pair<Project, StatusLine> pair = Pair.of(project, statusLine);
                 list.add(pair);

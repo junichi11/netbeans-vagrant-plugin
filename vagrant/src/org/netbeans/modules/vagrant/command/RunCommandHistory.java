@@ -51,7 +51,7 @@ import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 
 public class RunCommandHistory implements CommandHistory {
 
-    private final List<Command> commands = new LinkedList<Command>();
+    private final List<Command> commands = new LinkedList<>();
     // TODO add settings?
     private static final int DEFAULT_MAX_SIZE = 20;
 
@@ -76,7 +76,7 @@ public class RunCommandHistory implements CommandHistory {
 
     @Override
     public List<Command> getCommands() {
-        return new ArrayList<Command>(commands);
+        return new ArrayList<>(commands);
     }
 
     public static class Factory {

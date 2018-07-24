@@ -79,7 +79,7 @@ public class RunCommandPanel extends JPanel {
 
     private static final long serialVersionUID = -4564497771171566386L;
     private List<String> commands;
-    private final Map<String, String> helpMap = new HashMap<String, String>();
+    private final Map<String, String> helpMap = new HashMap<>();
     private static final RunCommandPanel INSTANCE = new RunCommandPanel();
     private Project project;
     private static final Logger LOGGER = Logger.getLogger(RunCommandPanel.class.getName());
@@ -236,7 +236,7 @@ public class RunCommandPanel extends JPanel {
 
     private void addSubcommands(String command, int selectedIndex) throws InvalidVagrantExecutableException {
         String[] split = command.split(" "); // NOI18N
-        ArrayList<String> subcommands = new ArrayList<String>();
+        ArrayList<String> subcommands = new ArrayList<>();
         subcommands.addAll(Arrays.asList(split));
         Vagrant vagrant = Vagrant.getDefault();
         List<String> subcommandList = vagrant.getSubcommandListLines(subcommands);

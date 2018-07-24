@@ -106,9 +106,9 @@ public final class FileUtils {
             return Collections.<String>emptyList();
         }
         // on linux there are usually duplicities in PATH
-        Set<String> dirs = new LinkedHashSet<String>(Arrays.asList(path.split(File.pathSeparator)));
+        Set<String> dirs = new LinkedHashSet<>(Arrays.asList(path.split(File.pathSeparator)));
         LOGGER.log(Level.FINE, "PATH dirs: {0}", dirs);
-        List<String> found = new ArrayList<String>(dirs.size() * filename.length);
+        List<String> found = new ArrayList<>(dirs.size() * filename.length);
         for (String f : filename) {
             for (String d : dirs) {
                 File file = new File(d, f);

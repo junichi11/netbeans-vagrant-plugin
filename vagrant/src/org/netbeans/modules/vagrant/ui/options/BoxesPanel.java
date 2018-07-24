@@ -378,7 +378,7 @@ public final class BoxesPanel extends VagrantCategoryPanel {
         }
 
         // get box name, provider and version
-        ArrayList<String> params = new ArrayList<String>();
+        ArrayList<String> params = new ArrayList<>();
         String boxName = VagrantUtils.getBoxName(selectedValue);
         if (boxName == null) {
             return;
