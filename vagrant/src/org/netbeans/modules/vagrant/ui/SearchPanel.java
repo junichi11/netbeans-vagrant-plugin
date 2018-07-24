@@ -111,24 +111,18 @@ public final class SearchPanel extends JPanel {
             descriptor.setValid(false);
             foundItemsList.setEnabled(true);
             progressBar.setIndeterminate(true);
-            detectTask = rp.create(new Runnable() {
-                @Override
-                public void run() {
-                    // just to be sure that the progress bar is displayed at least for a while
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException ex) {
-                        return;
-                    }
-                    final List<String> allItems = support.detect();
-                    assert allItems != null;
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            updateFoundItems(allItems);
-                        }
-                    });
+            detectTask = rp.create(() -> {
+                // just to be sure that the progress bar is displayed at least for a while
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ex) {
+                    return;
                 }
+                final List<String> allItems = support.detect();
+                assert allItems != null;
+                SwingUtilities.invokeLater(() -> {
+                    updateFoundItems(allItems);
+                });
             });
             detectTask.schedule(0);
         } else {

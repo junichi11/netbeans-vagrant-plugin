@@ -91,12 +91,8 @@ public class VagrantLookupProvider implements LookupProvider {
             protected void projectOpened() {
                 final VagrantStatus vagrantStatus = getVagrantStatus();
                 if (vagrantStatus != null) {
-                    RP.execute(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            vagrantStatus.update(project);
-                        }
+                    RP.execute(() -> {
+                        vagrantStatus.update(project);
                     });
                 }
             }

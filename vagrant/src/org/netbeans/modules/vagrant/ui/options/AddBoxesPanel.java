@@ -133,20 +133,17 @@ public class AddBoxesPanel extends JPanel {
     }
 
     public void runVagrantBoxAdd() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                String boxName = getBoxName();
-                String boxUrl = getBoxUrl();
-                if (boxName.isEmpty() || boxUrl.isEmpty()) {
-                    return;
-                }
-                try {
-                    Vagrant vagrant = Vagrant.getDefault();
-                    vagrant.box(Vagrant.BOX.ADD, Arrays.asList(boxName, boxUrl));
-                } catch (InvalidVagrantExecutableException ex) {
-                    VagrantUtils.showWarnigDialog(ex.getMessage());
-                }
+        SwingUtilities.invokeLater(() -> {
+            String boxName = getBoxName();
+            String boxUrl = getBoxUrl();
+            if (boxName.isEmpty() || boxUrl.isEmpty()) {
+                return;
+            }
+            try {
+                Vagrant vagrant = Vagrant.getDefault();
+                vagrant.box(Vagrant.BOX.ADD, Arrays.asList(boxName, boxUrl));
+            } catch (InvalidVagrantExecutableException ex) {
+                VagrantUtils.showWarnigDialog(ex.getMessage());
             }
         });
     }

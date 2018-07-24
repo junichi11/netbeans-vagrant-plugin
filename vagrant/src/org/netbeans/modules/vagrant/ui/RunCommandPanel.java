@@ -110,31 +110,28 @@ public class RunCommandPanel extends JPanel {
     private void update() {
         final DefaultListModel<String> model = getListModel();
         model.clear();
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    // get command list
-                    Vagrant vagrant = Vagrant.getDefault();
-                    commands = vagrant.getCommandListLines();
-                    int i = 0;
+        SwingUtilities.invokeLater(() -> {
+            try {
+                // get command list
+                Vagrant vagrant = Vagrant.getDefault();
+                commands = vagrant.getCommandListLines();
+                int i = 0;
 
-                    // set command list
-                    for (String command : commands) {
-                        // #8 command may have description
-                        String description = ""; // NOI18N
-                        int indexOf = command.indexOf(" "); // NOI18N
-                        if (indexOf != -1) {
-                            description = command.substring(indexOf);
-                            command = command.substring(0, indexOf).trim();
-                            commands.set(i, command);
-                        }
-                        model.add(i, String.format("<html><b>%s</b>%s</html>", command, description)); // NOI18N
-                        i++;
+                // set command list
+                for (String command : commands) {
+                    // #8 command may have description
+                    String description = ""; // NOI18N
+                    int indexOf = command.indexOf(" "); // NOI18N
+                    if (indexOf != -1) {
+                        description = command.substring(indexOf);
+                        command = command.substring(0, indexOf).trim();
+                        commands.set(i, command);
                     }
-                } catch (InvalidVagrantExecutableException ex) {
-                    LOGGER.log(Level.WARNING, ex.getMessage());
+                    model.add(i, String.format("<html><b>%s</b>%s</html>", command, description)); // NOI18N
+                    i++;
                 }
+            } catch (InvalidVagrantExecutableException ex) {
+                LOGGER.log(Level.WARNING, ex.getMessage());
             }
         });
     }

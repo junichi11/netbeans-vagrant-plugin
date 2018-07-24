@@ -420,12 +420,8 @@ public final class StatusManagementTopComponent extends TopComponent implements 
             reload();
             return;
         }
-        RP.execute(new Runnable() {
-
-            @Override
-            public void run() {
-                reload();
-            }
+        RP.execute(() -> {
+            reload();
         });
     }
 
@@ -460,12 +456,8 @@ public final class StatusManagementTopComponent extends TopComponent implements 
             reloadStatus(status);
             return;
         }
-        RP.execute(new Runnable() {
-
-            @Override
-            public void run() {
-                reloadStatus(status);
-            }
+        RP.execute(() -> {
+            reloadStatus(status);
         });
     }
 
@@ -526,12 +518,8 @@ public final class StatusManagementTopComponent extends TopComponent implements 
             runCommand(command);
             return;
         }
-        RP.execute(new Runnable() {
-
-            @Override
-            public void run() {
-                runCommand(command);
-            }
+        RP.execute(() -> {
+            runCommand(command);
         });
     }
 
@@ -600,34 +588,30 @@ public final class StatusManagementTopComponent extends TopComponent implements 
     @Override
     public synchronized void stateChanged(ChangeEvent e) {
         final Object source = e.getSource();
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                if (source instanceof VagrantStatus) {
-                    VagrantStatus vagrantStatus = (VagrantStatus) source;
-                    Pair<Project, StatusLine> selectedValue = getSelectedStatus();
-                    Pair<Project, StatusLine> newSelectedValue = null;
-                    model.clear();
-                    for (Pair<Project, StatusLine> status : vagrantStatus.getAll()) {
-                        Project project = status.first();
-                        if (selectedValue != null) {
-                            Project selectedProject = selectedValue.first();
-                            if (selectedProject == project) {
-                                newSelectedValue = status;
-                            }
+        SwingUtilities.invokeLater(() -> {
+            if (source instanceof VagrantStatus) {
+                VagrantStatus vagrantStatus = (VagrantStatus) source;
+                Pair<Project, StatusLine> selectedValue = getSelectedStatus();
+                Pair<Project, StatusLine> newSelectedValue = null;
+                model.clear();
+                for (Pair<Project, StatusLine> status : vagrantStatus.getAll()) {
+                    Project project = status.first();
+                    if (selectedValue != null) {
+                        Project selectedProject = selectedValue.first();
+                        if (selectedProject == project) {
+                            newSelectedValue = status;
                         }
-                        model.addElement(status);
                     }
-
-                    // add model when project is open
-                    setModel();
-                    setCellRenderer();
-                    if (newSelectedValue != null) {
-                        projectList.setSelectedValue(newSelectedValue, true);
-                    }
-                    setAllButtonsEnabled(true);
+                    model.addElement(status);
                 }
+
+                // add model when project is open
+                setModel();
+                setCellRenderer();
+                if (newSelectedValue != null) {
+                    projectList.setSelectedValue(newSelectedValue, true);
+                }
+                setAllButtonsEnabled(true);
             }
         });
     }

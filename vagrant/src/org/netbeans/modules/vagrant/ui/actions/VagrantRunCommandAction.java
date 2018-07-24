@@ -68,14 +68,11 @@ public class VagrantRunCommandAction extends VagrantAction {
 
     @Override
     public void actionPerformed(final Project project) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                RunCommandPanel panel = RunCommandPanel.getDefault();
-                DialogDescriptor descriptor = panel.showDialog(project);
-                if (descriptor.getValue() == DialogDescriptor.OK_OPTION) {
-                    panel.runCommand();
-                }
+        SwingUtilities.invokeLater(() -> {
+            RunCommandPanel panel = RunCommandPanel.getDefault();
+            DialogDescriptor descriptor = panel.showDialog(project);
+            if (descriptor.getValue() == DialogDescriptor.OK_OPTION) {
+                panel.runCommand();
             }
         });
     }

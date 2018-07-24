@@ -80,19 +80,15 @@ public enum ProjectClosedAction {
 
                 @Override
                 void runAction(final Project project, final Vagrant vagrant) {
-                    SwingUtilities.invokeLater(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            NotifyDescriptor.Confirmation confirmation = new NotifyDescriptor.Confirmation(
-                                    Bundle.ProjectClosedAction_closed_message(project.getProjectDirectory().getName()),
-                                    NotifyDescriptor.YES_NO_OPTION,
-                                    NotifyDescriptor.QUESTION_MESSAGE
-                            );
-                            // run halt command
-                            if (DialogDisplayer.getDefault().notify(confirmation) == NotifyDescriptor.YES_OPTION) {
-                                vagrant.halt(project);
-                            }
+                    SwingUtilities.invokeLater(() -> {
+                        NotifyDescriptor.Confirmation confirmation = new NotifyDescriptor.Confirmation(
+                                Bundle.ProjectClosedAction_closed_message(project.getProjectDirectory().getName()),
+                                NotifyDescriptor.YES_NO_OPTION,
+                                NotifyDescriptor.QUESTION_MESSAGE
+                        );
+                        // run halt command
+                        if (DialogDisplayer.getDefault().notify(confirmation) == NotifyDescriptor.YES_OPTION) {
+                            vagrant.halt(project);
                         }
                     });
                 }

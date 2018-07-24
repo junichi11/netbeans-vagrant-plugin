@@ -930,12 +930,7 @@ public final class Vagrant {
      * @return InputProcessorFactory
      */
     private ExecutionDescriptor.InputProcessorFactory2 getOutputProcessorFactory(final LineProcessor lineProcessor) {
-        return new ExecutionDescriptor.InputProcessorFactory2() {
-            @Override
-            public InputProcessor newInputProcessor(InputProcessor defaultProcessor) {
-                return InputProcessors.ansiStripping(InputProcessors.bridge(lineProcessor));
-            }
-        };
+        return (InputProcessor defaultProcessor) -> InputProcessors.ansiStripping(InputProcessors.bridge(lineProcessor));
     }
 
     /**
@@ -947,17 +942,14 @@ public final class Vagrant {
         if (noInfo) {
             return null;
         }
-        return new ExecutionDescriptor.InputProcessorFactory2() {
-            @Override
-            public InputProcessor newInputProcessor(InputProcessor defaultProcessor) {
-                if (SHARE_COMMAND.equals(command)) {
-                    return InputProcessors.proxy(
-                            new InfoInputProcessor(defaultProcessor, fullCommand),
-                            defaultProcessor,
-                            InputProcessors.ansiStripping(InputProcessors.bridge(new VagrantShareLineProcessor())));
-                }
-                return InputProcessors.proxy(new InfoInputProcessor(defaultProcessor, fullCommand), defaultProcessor);
+        return (InputProcessor defaultProcessor) -> {
+            if (SHARE_COMMAND.equals(command)) {
+                return InputProcessors.proxy(
+                        new InfoInputProcessor(defaultProcessor, fullCommand),
+                        defaultProcessor,
+                        InputProcessors.ansiStripping(InputProcessors.bridge(new VagrantShareLineProcessor())));
             }
+            return InputProcessors.proxy(new InfoInputProcessor(defaultProcessor, fullCommand), defaultProcessor);
         };
     }
 

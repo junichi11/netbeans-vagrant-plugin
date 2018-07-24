@@ -73,15 +73,11 @@ public final class VagrantStatusImpl implements VagrantStatus {
 
     private final ChangeSupport changeSupport = new ChangeSupport(this);
     private static final Map<Project, List<Pair<Project, StatusLine>>> VAGRANT_STATUS
-            = new TreeMap<Project, List<Pair<Project, StatusLine>>>(new Comparator<Project>() {
-
-                @Override
-                public int compare(Project p1, Project p2) {
-                    ProjectInformation info1 = ProjectUtils.getInformation(p1);
-                    ProjectInformation info2 = ProjectUtils.getInformation(p2);
-                    return info1.getDisplayName().compareTo(info2.getDisplayName());
-                }
-            });
+            = new TreeMap<>((Project p1, Project p2) -> {
+                ProjectInformation info1 = ProjectUtils.getInformation(p1);
+                ProjectInformation info2 = ProjectUtils.getInformation(p2);
+                return info1.getDisplayName().compareTo(info2.getDisplayName());
+    });
     private static final RequestProcessor RP = new RequestProcessor(VagrantStatusImpl.class);
     private static final Logger LOGGER = Logger.getLogger(VagrantStatusImpl.class.getName());
     private final Object lock = new Object();
@@ -149,16 +145,12 @@ public final class VagrantStatusImpl implements VagrantStatus {
         // XXX may return FeatureProjectFactory$FeatureNonProject
         // It's occurred if some projects is already opened when plugin is installed
         // Workaround: reboot NetBeans or reopen projects
-        RP.post(new Runnable() {
-
-            @Override
-            public void run() {
-                OpenProjects projects = OpenProjects.getDefault();
-                for (Project project : projects.getOpenProjects()) {
-                    add(project);
-                }
-                fireChange();
+        RP.post(() -> {
+            OpenProjects projects = OpenProjects.getDefault();
+            for (Project project : projects.getOpenProjects()) {
+                add(project);
             }
+            fireChange();
         });
     }
 
@@ -167,16 +159,12 @@ public final class VagrantStatusImpl implements VagrantStatus {
         if (!isVagrantAvailable() || !VagrantUtils.hasVagrantfile(project)) {
             return;
         }
-        RP.post(new Runnable() {
-
-            @Override
-            public void run() {
-                synchronized (lock) {
-                    VAGRANT_STATUS.remove(project);
-                }
-                add(project);
-                fireChange();
+        RP.post(() -> {
+            synchronized (lock) {
+                VAGRANT_STATUS.remove(project);
             }
+            add(project);
+            fireChange();
         });
     }
 
