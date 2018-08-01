@@ -20,6 +20,8 @@ Please download a nbm from Plugin Portal:
 
 ## Usage
 
+### Project
+
 - set a vagrant path to Options
 - add boxes
 - select a **Project Node**
@@ -30,6 +32,13 @@ Please download a nbm from Plugin Portal:
 - Right-click project node > Vagrant
 - Right-click Vagrant statusbar
 - Tools > Vagrant
+
+### Services Tab
+
+- Open the services tab (Windows > Services)
+- Right-click the Vagrant node
+- Click "Add Vagrant Project..."
+- Set a display name and Vagrant root directory which has a Vagrantfile
 
 ## Vagrant Root Settings
 
