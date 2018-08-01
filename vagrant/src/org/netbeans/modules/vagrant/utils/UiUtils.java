@@ -42,9 +42,15 @@
 package org.netbeans.modules.vagrant.utils;
 
 import java.util.List;
+import javax.swing.SwingUtilities;
 import org.netbeans.api.annotations.common.CheckForNull;
 import org.netbeans.api.options.OptionsDisplayer;
 import org.netbeans.modules.vagrant.ui.SearchPanel;
+import org.openide.filesystems.FileObject;
+import org.openide.loaders.DataObject;
+import org.openide.loaders.DataObjectNotFoundException;
+import org.openide.text.Line;
+import org.openide.text.NbDocument;
 import org.openide.util.Parameters;
 
 /**
@@ -55,12 +61,31 @@ import org.openide.util.Parameters;
 public final class UiUtils {
 
     public static final String OPTIONS_PATH = "Advanced/Vagrant"; // NOI18N
+    public static final String VAGRANT_LAST_FOLDER_SUFFIX = ".vagrant-root"; // NOI18N
 
     private UiUtils() {
     }
 
     public static void showOptions() {
         OptionsDisplayer.getDefault().open(OPTIONS_PATH);
+    }
+
+    public static void open(FileObject fileObject) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(() -> {
+                open(fileObject);
+            });
+        }
+        openFileObject(fileObject);
+    }
+
+    private static void openFileObject(FileObject fileObject) {
+        try {
+            DataObject od = DataObject.find(fileObject);
+            NbDocument.openDocument(od, 0, Line.ShowOpenType.OPEN, Line.ShowVisibilityType.FOCUS);
+        } catch (DataObjectNotFoundException e) {
+            // XXX
+        }
     }
 
     /**

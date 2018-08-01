@@ -44,6 +44,7 @@ package org.netbeans.modules.vagrant.ui.actions;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
@@ -70,7 +71,7 @@ public final class VagrantStatusAction extends VagrantAction {
     public void actionPerformed(Project project) {
         try {
             Vagrant vagrant = Vagrant.getDefault();
-            vagrant.status(project);
+            vagrant.status(VagrantProjectImpl.create(project));
         } catch (InvalidVagrantExecutableException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }

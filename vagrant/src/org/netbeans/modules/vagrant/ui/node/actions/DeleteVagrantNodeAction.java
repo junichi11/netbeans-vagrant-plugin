@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.
@@ -36,44 +36,57 @@
  * made subject to such option by the copyright holder.
  *
  * Contributor(s):
- *
- * Portions Copyrighted 2013 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.vagrant.ui.actions;
+package org.netbeans.modules.vagrant.ui.node.actions;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.netbeans.api.project.Project;
-import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
-import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
-import org.netbeans.modules.vagrant.command.Vagrant;
-import org.netbeans.modules.vagrant.utils.VagrantUtils;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionRegistration;
+import org.netbeans.modules.vagrant.VagrantStatus;
+import org.netbeans.modules.vagrant.api.VagrantProjectGlobal;
+import org.netbeans.modules.vagrant.api.VagrantProjectRegistry;
+import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
+import org.openide.nodes.Node;
+import org.openide.util.HelpCtx;
 import org.openide.util.NbBundle;
 
-@ActionID(
-        category = "Vagrant",
-        id = "org.netbeans.modules.vagrant.ui.actions.VagrantResumeAction")
-@ActionRegistration(
-        displayName = "#CTL_VagrantResumeAction", lazy = false)
-@NbBundle.Messages("CTL_VagrantResumeAction=Vagrant resume")
-public class VagrantResumeAction extends VagrantAction {
+public class DeleteVagrantNodeAction extends AbstractVagrantNodeAction {
 
-    private static final long serialVersionUID = 7166256143861970176L;
-    private static final Logger LOGGER = Logger.getLogger(VagrantResumeAction.class.getName());
+    private static final long serialVersionUID = -1848450518913299742L;
 
-    public VagrantResumeAction() {
-        super(Bundle.CTL_VagrantResumeAction(), VagrantUtils.getIcon(VagrantUtils.RESUME_ICON_16));
+    @Override
+    @NbBundle.Messages({
+        "DeleteVagrantNodeAction.confirmation.message=Would you really like to delete this project node?"
+    })
+    protected void performAction(Node[] nodes) {
+        for (Node node : nodes) {
+            NotifyDescriptor.Confirmation confirmation = new NotifyDescriptor.Confirmation(
+                    Bundle.DeleteVagrantNodeAction_confirmation_message(),
+                    NotifyDescriptor.OK_CANCEL_OPTION,
+                    NotifyDescriptor.QUESTION_MESSAGE
+            );
+            if (DialogDisplayer.getDefault().notify(confirmation) == NotifyDescriptor.OK_OPTION) {
+                VagrantProjectGlobal project = node.getLookup().lookup(VagrantProjectGlobal.class);
+                VagrantStatus status = project.getVagrantStatus();
+                status.remove(project);
+                VagrantPreferences.deleteVagrantProject(project);
+                VagrantProjectRegistry.getDefault().removeProject(project);
+            }
+        }
     }
 
     @Override
-    public void actionPerformed(Project project) {
-        try {
-            Vagrant vagrant = Vagrant.getDefault();
-            vagrant.resume(VagrantProjectImpl.create(project));
-        } catch (InvalidVagrantExecutableException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
-        }
+    protected boolean enable(Node[] nodes) {
+        return true;
     }
+
+    @Override
+    public String getName() {
+        return "Delete Vagrant Project...";
+    }
+
+    @Override
+    public HelpCtx getHelpCtx() {
+        return null;
+    }
+
 }

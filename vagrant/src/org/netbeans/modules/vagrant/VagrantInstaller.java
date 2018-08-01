@@ -48,6 +48,7 @@ import java.util.logging.Logger;
 import javax.swing.JFrame;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
+import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.RunCommandHistory;
 import org.netbeans.modules.vagrant.command.Vagrant;
@@ -71,7 +72,7 @@ public final class VagrantInstaller extends ModuleInstall {
     public void restored() {
         Lookup lookup = Lookup.getDefault();
         VagrantStatusLineElement lineElement = lookup.lookup(VagrantStatusLineElement.class);
-        VagrantStatus vagrantStatus = lookup.lookup(VagrantStatus.class);
+        VagrantStatus vagrantStatus = lookup.lookup(VagrantStatusImpl.class);
         if (lineElement != null && vagrantStatus != null) {
             vagrantStatus.addChangeListener(lineElement);
         }
@@ -81,7 +82,7 @@ public final class VagrantInstaller extends ModuleInstall {
     public void close() {
         // clear status
         Lookup lookup = Lookup.getDefault();
-        VagrantStatus vagrantStatus = lookup.lookup(VagrantStatus.class);
+        VagrantStatus vagrantStatus = lookup.lookup(VagrantStatusImpl.class);
         if (vagrantStatus == null) {
             return;
         }
@@ -140,7 +141,7 @@ public final class VagrantInstaller extends ModuleInstall {
 
     private void getRunningProejcts(List<Pair<Project, StatusLine>> haltAskProjects, List<Pair<Project, StatusLine>> runningProjects) {
         if (VagrantOptions.getInstance().isCachedStatusOnClose()) {
-            VagrantStatus vagrantStatus = Lookup.getDefault().lookup(VagrantStatus.class);
+            VagrantStatusImpl vagrantStatus = Lookup.getDefault().lookup(VagrantStatusImpl.class);
             if (vagrantStatus != null) {
                 for (Pair<Project, StatusLine> pair : vagrantStatus.getAll()) {
                     separateRunningProjects(pair, haltAskProjects, runningProjects);
@@ -152,7 +153,7 @@ public final class VagrantInstaller extends ModuleInstall {
             for (Project project : projects.getOpenProjects()) {
                 try {
                     Vagrant vagrant = Vagrant.getDefault();
-                    List<StatusLine> statusLines = vagrant.getStatusLines(project);
+                    List<StatusLine> statusLines = vagrant.getStatusLines(VagrantProjectImpl.create(project));
                     // status confirmation
                     for (StatusLine statusLine : statusLines) {
                         separateRunningProjects(Pair.of(project, statusLine), haltAskProjects, runningProjects);
@@ -183,7 +184,7 @@ public final class VagrantInstaller extends ModuleInstall {
             try {
                 Vagrant vagrant = Vagrant.getDefault();
                 String name = status.second().getName();
-                vagrant.halt(status.first(), name);
+                vagrant.halt(VagrantProjectImpl.create(status.first()), name);
             } catch (InvalidVagrantExecutableException ex) {
                 LOGGER.log(Level.WARNING, ex.getMessage());
             }

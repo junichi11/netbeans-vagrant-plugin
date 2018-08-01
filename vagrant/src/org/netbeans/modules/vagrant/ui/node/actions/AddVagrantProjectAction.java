@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.
@@ -36,61 +36,63 @@
  * made subject to such option by the copyright holder.
  *
  * Contributor(s):
- *
- * Portions Copyrighted 2013 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.vagrant.ui.actions;
+package org.netbeans.modules.vagrant.ui.node.actions;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.netbeans.api.project.Project;
-import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
-import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
-import org.netbeans.modules.vagrant.command.Vagrant;
-import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
-import org.netbeans.modules.vagrant.utils.VagrantUtils;
+import java.awt.Dialog;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.netbeans.modules.vagrant.api.VagrantProjectGlobal;
+import org.netbeans.modules.vagrant.api.VagrantProjectRegistry;
+import org.netbeans.modules.vagrant.ui.AddVagrantProjcetPanel;
+import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle;
 import org.openide.util.NbBundle.Messages;
 
 @ActionID(
-        category = "Vagrant",
-        id = "org.netbeans.modules.vagrant.ui.actions.VagrantDestroyAction")
+        category = "System",
+        id = "org.netbeans.modules.vagrant.ui.node.actions.AddVagrantProjectAction"
+)
 @ActionRegistration(
-        displayName = "#CTL_VagrantDestroyAction", lazy = false)
-@Messages("CTL_VagrantDestroyAction=Vagrant destroy")
-public final class VagrantDestroyAction extends VagrantAction {
+        displayName = "#CTL_AddVagrantProjectAction"
+)
+@ActionReferences(
+        @ActionReference(path = "Vagrant/Wizard", position = 100)
+)
+@Messages("CTL_AddVagrantProjectAction=Add Vagrant Project...")
+public final class AddVagrantProjectAction implements ActionListener {
 
-    private static final long serialVersionUID = 1019938024932905534L;
-    private static final Logger LOGGER = Logger.getLogger(VagrantDestroyAction.class.getName());
-
-    public VagrantDestroyAction() {
-        super(Bundle.CTL_VagrantDestroyAction(), VagrantUtils.getIcon(VagrantUtils.DESTROY_ICON_16));
-    }
-
-    @NbBundle.Messages("VagrantDestroyAction.confirmation.message=Do you really want to destroy?")
     @Override
-    public void actionPerformed(Project project) {
-        // ** require TTY **
-        // so, show comfirmation dialog in NetBeans side
-        NotifyDescriptor.Confirmation confirmation = new NotifyDescriptor.Confirmation(
-                Bundle.VagrantDestroyAction_confirmation_message(),
-                NotifyDescriptor.OK_CANCEL_OPTION);
-        if (DialogDisplayer.getDefault().notify(confirmation) != NotifyDescriptor.OK_OPTION) {
-            return;
+    public void actionPerformed(ActionEvent event) {
+        AddVagrantProjcetPanel panel = new AddVagrantProjcetPanel();
+        DialogDescriptor dialogDescriptor = new DialogDescriptor(
+                panel,
+                Bundle.CTL_AddVagrantProjectAction(),
+                true,
+                null
+        );
+        dialogDescriptor.setValid(false);
+        ChangeListener changeListener = (ChangeEvent e) -> {
+            String errorMessage = panel.getErrorMessage();
+            dialogDescriptor.setValid(errorMessage.isEmpty());
+        };
+        panel.addChangeListener(changeListener);
+        Dialog dialog = DialogDisplayer.getDefault().createDialog(dialogDescriptor);
+        dialog.setVisible(true);
+        if (dialogDescriptor.getValue() == DialogDescriptor.OK_OPTION) {
+            // add project
+            String displayName = panel.getDisplayName();
+            String vagrantRoot = panel.getVagrantRoot();
+            VagrantProjectGlobal project = VagrantProjectGlobal.create(displayName, vagrantRoot);
+            assert project != null;
+            VagrantProjectRegistry.getDefault().addProject(project);
         }
-
-        try {
-            Vagrant vagrant = Vagrant.getDefault();
-            vagrant.destroy(VagrantProjectImpl.create(project));
-        } catch (InvalidVagrantExecutableException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
-        }
-
-        // clear settings
-        VagrantPreferences.setVagrantPath(project, ""); // NOI18N
+        panel.removeChangeListener(changeListener);
     }
 }

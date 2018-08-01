@@ -61,6 +61,7 @@ import javax.swing.event.ChangeListener;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.StatusLine;
 import org.netbeans.modules.vagrant.VagrantStatus;
+import org.netbeans.modules.vagrant.VagrantStatusImpl;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
 import org.netbeans.modules.vagrant.ui.actions.VagrantAction;
 import org.netbeans.modules.vagrant.ui.actions.VagrantActionMenu;
@@ -259,7 +260,7 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
         }
 
         if (isForce) {
-            final VagrantStatus vagrantStatus = Lookup.getDefault().lookup(VagrantStatus.class);
+            final VagrantStatus vagrantStatus = Lookup.getDefault().lookup(VagrantStatusImpl.class);
             if (vagrantStatus != null) {
                 RP.execute(() -> {
                     setStatus(Bundle.VagrantStatusLineElement_reload());
@@ -315,8 +316,8 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
     @Override
     public synchronized void stateChanged(ChangeEvent e) {
         Object source = e.getSource();
-        if (source instanceof VagrantStatus) {
-            VagrantStatus vagrantStatus = (VagrantStatus) source;
+        if (source instanceof VagrantStatusImpl) {
+            VagrantStatusImpl vagrantStatus = (VagrantStatusImpl) source;
             statusCache.clear();
             for (Pair<Project, StatusLine> status : vagrantStatus.getAll()) {
                 Project p = status.first();

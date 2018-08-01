@@ -44,6 +44,7 @@ package org.netbeans.modules.vagrant.ui.actions;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.openide.util.NbBundle.Messages;
@@ -62,7 +63,7 @@ public final class VagrantSshConfigAction extends VagrantAction {
     public void actionPerformed(Project project) {
         try {
             Vagrant vagrant = Vagrant.getDefault();
-            vagrant.sshConfig(project);
+            vagrant.sshConfig(VagrantProjectImpl.create(project));
         } catch (InvalidVagrantExecutableException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }

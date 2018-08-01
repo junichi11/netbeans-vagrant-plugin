@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.
@@ -36,106 +36,96 @@
  * made subject to such option by the copyright holder.
  *
  * Contributor(s):
- *
- * Portions Copyrighted 2014 Sun Microsystems, Inc.
  */
 package org.netbeans.modules.vagrant;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeListener;
-import org.netbeans.api.project.Project;
-import org.netbeans.api.project.ProjectInformation;
-import org.netbeans.api.project.ProjectUtils;
-import org.netbeans.api.project.ui.OpenProjects;
-import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
+import org.netbeans.modules.vagrant.api.VagrantProjectGlobal;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
+import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
 import static org.netbeans.modules.vagrant.utils.VagrantUtils.isVagrantAvailable;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.ChangeSupport;
 import org.openide.util.Pair;
 import org.openide.util.RequestProcessor;
 import org.openide.util.lookup.ServiceProvider;
 
-/**
- * Implementation of VagrantStatus
- *
- * @author junichi11
- */
 @ServiceProvider(service = VagrantStatus.class)
-public final class VagrantStatusImpl implements VagrantStatus<Project> {
+public class VagrantStatusGlobal implements VagrantStatus<VagrantProjectGlobal> {
 
+    private static final Map<VagrantProjectGlobal, List<Pair<VagrantProjectGlobal, StatusLine>>> VAGRANT_STATUS
+            = new TreeMap<>((VagrantProjectGlobal p1, VagrantProjectGlobal p2) -> {
+                return p1.getDisplayName().compareTo(p2.getDisplayName());
+            });
+    private static final RequestProcessor RP = new RequestProcessor(VagrantStatusGlobal.class);
+    private static final Logger LOGGER = Logger.getLogger(VagrantStatusGlobal.class.getName());
     private final ChangeSupport changeSupport = new ChangeSupport(this);
-    private static final Map<Project, List<Pair<Project, StatusLine>>> VAGRANT_STATUS
-            = new TreeMap<>((Project p1, Project p2) -> {
-                ProjectInformation info1 = ProjectUtils.getInformation(p1);
-                ProjectInformation info2 = ProjectUtils.getInformation(p2);
-                return info1.getDisplayName().compareTo(info2.getDisplayName());
-    });
-    private static final RequestProcessor RP = new RequestProcessor(VagrantStatusImpl.class);
-    private static final Logger LOGGER = Logger.getLogger(VagrantStatusImpl.class.getName());
     private final Object lock = new Object();
 
     @Override
-    public List<Pair<Project, StatusLine>> getAll() {
-        ArrayList<Pair<Project, StatusLine>> allList = new ArrayList<>();
+    public List<Pair<VagrantProjectGlobal, StatusLine>> getAll() {
+        ArrayList<Pair<VagrantProjectGlobal, StatusLine>> allList = new ArrayList<>();
         synchronized (lock) {
-            for (List<Pair<Project, StatusLine>> list : VAGRANT_STATUS.values()) {
-                allList.addAll(list);
-            }
+            VAGRANT_STATUS.values().forEach(list -> allList.addAll(list));
         }
-
         return allList;
     }
 
     @Override
-    public List<StatusLine> get(Project project) {
+    public List<StatusLine> get(VagrantProjectGlobal project) {
         ArrayList<StatusLine> allStatus = new ArrayList<>();
         synchronized (lock) {
-            List<Pair<Project, StatusLine>> statusList = VAGRANT_STATUS.get(project);
+            List<Pair<VagrantProjectGlobal, StatusLine>> statusList = VAGRANT_STATUS.get(project);
             if (statusList == null) {
                 return allStatus;
             }
-            for (Pair<Project, StatusLine> status : statusList) {
-                allStatus.add(status.second());
-            }
+            statusList.forEach(status -> allStatus.add(status.second()));
         }
         return allStatus;
     }
 
-    private void add(Project project) {
-        if (Vagrant.isRunning()) {
-            LOGGER.log(Level.FINE, "Vagrant command is running...");
-        }
-        try {
-            Vagrant vagrant = Vagrant.getDefault();
-            Vagrant.setRunning(true);
-            List<StatusLine> statusLines = vagrant.getStatusLines(VagrantProjectImpl.create(project));
-            Vagrant.setRunning(false);
-            ArrayList<Pair<Project, StatusLine>> list = new ArrayList<>(statusLines.size());
-            for (StatusLine statusLine : statusLines) {
-                Pair<Project, StatusLine> pair = Pair.of(project, statusLine);
-                list.add(pair);
-            }
-            synchronized (lock) {
-                VAGRANT_STATUS.put(project, list);
-            }
-        } catch (InvalidVagrantExecutableException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-    }
-
     @Override
-    public void remove(Project project) {
+    public void remove(VagrantProjectGlobal project) {
         synchronized (lock) {
             VAGRANT_STATUS.remove(project);
         }
         fireChange();
+    }
+
+    @Override
+    public void update(VagrantProjectGlobal project) {
+        String vagrantFilePath = project.getVagrantRootPath();
+        File file = new File(vagrantFilePath);
+        if (!isVagrantAvailable() || !VagrantUtils.hasVagrantfile(FileUtil.toFileObject(file))) {
+            return;
+        }
+        RP.post(() -> {
+            synchronized (lock) {
+                VAGRANT_STATUS.remove(project);
+            }
+            add(project);
+            fireChange();
+        });
+    }
+
+    @Override
+    public void addChangeListener(ChangeListener listener) {
+        changeSupport.addChangeListener(listener);
+    }
+
+    @Override
+    public void removeChangeListener(ChangeListener listener) {
+        changeSupport.removeChangeListener(listener);
     }
 
     @Override
@@ -150,24 +140,8 @@ public final class VagrantStatusImpl implements VagrantStatus<Project> {
         // It's occurred if some projects is already opened when plugin is installed
         // Workaround: reboot NetBeans or reopen projects
         RP.post(() -> {
-            OpenProjects projects = OpenProjects.getDefault();
-            for (Project project : projects.getOpenProjects()) {
-                add(project);
-            }
-            fireChange();
-        });
-    }
-
-    @Override
-    public void update(final Project project) {
-        if (!isVagrantAvailable() || !VagrantUtils.hasVagrantfile(project)) {
-            return;
-        }
-        RP.post(() -> {
-            synchronized (lock) {
-                VAGRANT_STATUS.remove(project);
-            }
-            add(project);
+            Collection<? extends VagrantProjectGlobal> allPorjects = VagrantPreferences.getAllProjects();
+            allPorjects.forEach(project -> add(project));
             fireChange();
         });
     }
@@ -180,14 +154,23 @@ public final class VagrantStatusImpl implements VagrantStatus<Project> {
         fireChange();
     }
 
-    @Override
-    public void addChangeListener(ChangeListener listener) {
-        changeSupport.addChangeListener(listener);
-    }
-
-    @Override
-    public void removeChangeListener(ChangeListener listener) {
-        changeSupport.removeChangeListener(listener);
+    private void add(VagrantProjectGlobal project) {
+        if (Vagrant.isRunning()) {
+            LOGGER.log(Level.FINE, "Vagrant command is running...");
+        }
+        try {
+            Vagrant vagrant = Vagrant.getDefault();
+            Vagrant.setRunning(true);
+            List<StatusLine> statusLines = vagrant.getStatusLines(project);
+            Vagrant.setRunning(false);
+            ArrayList<Pair<VagrantProjectGlobal, StatusLine>> list = new ArrayList<>(statusLines.size());
+            statusLines.forEach(statusLine -> list.add(Pair.of(project, statusLine)));
+            synchronized (lock) {
+                VAGRANT_STATUS.put(project, list);
+            }
+        } catch (InvalidVagrantExecutableException ex) {
+            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
+        }
     }
 
     private void fireChange() {

@@ -62,6 +62,9 @@ import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.netbeans.modules.vagrant.StatusLine;
 import org.netbeans.modules.vagrant.VagrantStatus;
+import org.netbeans.modules.vagrant.VagrantStatusImpl;
+import org.netbeans.modules.vagrant.api.VagrantProject;
+import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
@@ -383,7 +386,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
 
     @Override
     public void componentOpened() {
-        VagrantStatus statuses = Lookup.getDefault().lookup(VagrantStatus.class);
+        VagrantStatus statuses = Lookup.getDefault().lookup(VagrantStatusImpl.class);
         if (statuses != null) {
             statuses.addChangeListener(this);
         }
@@ -392,7 +395,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
     @Override
     public void componentClosed() {
         model.clear();
-        VagrantStatus status = Lookup.getDefault().lookup(VagrantStatus.class);
+        VagrantStatus status = Lookup.getDefault().lookup(VagrantStatusImpl.class);
         if (status != null) {
             status.removeChangeListener(this);
         }
@@ -436,7 +439,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
         }
 
         model.clear();
-        VagrantStatus status = Lookup.getDefault().lookup(VagrantStatus.class);
+        VagrantStatus status = Lookup.getDefault().lookup(VagrantStatusImpl.class);
         if (status == null) {
             return;
         }
@@ -475,7 +478,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
         if (project == null) {
             return;
         }
-        VagrantStatus vagrantStatus = Lookup.getDefault().lookup(VagrantStatus.class);
+        VagrantStatus vagrantStatus = Lookup.getDefault().lookup(VagrantStatusImpl.class);
         if (vagrantStatus == null) {
             return;
         }
@@ -549,24 +552,37 @@ public final class StatusManagementTopComponent extends TopComponent implements 
             try {
                 Vagrant vagrant = Vagrant.getDefault();
                 Future<Integer> result = null;
-                if (command.equals(Vagrant.UP_COMMAND)) {
-                    result = vagrant.up(selectedProject, name, provider);
-                } else if (command.equals(Vagrant.RELOAD_COMMAND)) {
-                    result = vagrant.reload(selectedProject, name);
-                } else if (command.equals(Vagrant.SUSPEND_COMMAND)) {
-                    result = vagrant.suspend(selectedProject, name);
-                } else if (command.equals(Vagrant.RESUME_COMMAND)) {
-                    result = vagrant.resume(selectedProject, name);
-                } else if (command.equals(Vagrant.HALT_COMMAND)) {
-                    result = vagrant.halt(selectedProject, name);
-                } else if (command.equals(Vagrant.DESTROY_COMMAND)) {
-                    result = vagrant.destroy(selectedProject, name);
-                } else if (command.equals(Vagrant.STATUS_COMMAND)) {
-                    result = vagrant.status(selectedProject, name);
-                } else if (command.equals(Vagrant.SHARE_COMMAND)) {
-                    result = vagrant.share(selectedProject);
-                } else if (command.equals(Vagrant.PROVISION_COMMAND)) {
-                    result = vagrant.provisiton(selectedProject, name);
+                VagrantProject selectedVagrantProject = VagrantProjectImpl.create(selectedProject);
+                switch (command) {
+                    case Vagrant.UP_COMMAND:
+                        result = vagrant.up(selectedVagrantProject, name, provider);
+                        break;
+                    case Vagrant.RELOAD_COMMAND:
+                        result = vagrant.reload(selectedVagrantProject, name);
+                        break;
+                    case Vagrant.SUSPEND_COMMAND:
+                        result = vagrant.suspend(selectedVagrantProject, name);
+                        break;
+                    case Vagrant.RESUME_COMMAND:
+                        result = vagrant.resume(selectedVagrantProject, name);
+                        break;
+                    case Vagrant.HALT_COMMAND:
+                        result = vagrant.halt(selectedVagrantProject, name);
+                        break;
+                    case Vagrant.DESTROY_COMMAND:
+                        result = vagrant.destroy(selectedVagrantProject, name);
+                        break;
+                    case Vagrant.STATUS_COMMAND:
+                        result = vagrant.status(selectedVagrantProject, name);
+                        break;
+                    case Vagrant.SHARE_COMMAND:
+                        result = vagrant.share(selectedVagrantProject);
+                        break;
+                    case Vagrant.PROVISION_COMMAND:
+                        result = vagrant.provisiton(selectedVagrantProject, name);
+                        break;
+                    default:
+                        break;
                 }
                 if (result != null) {
                     result.get();
@@ -575,9 +591,7 @@ public final class StatusManagementTopComponent extends TopComponent implements 
                 Exceptions.printStackTrace(ex);
             } catch (CancellationException ex) {
                 LOGGER.log(Level.WARNING, "command is canceled");
-            } catch (InterruptedException ex) {
-                LOGGER.log(Level.WARNING, ex.getMessage());
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 LOGGER.log(Level.WARNING, ex.getMessage());
             }
         } finally {
@@ -589,8 +603,8 @@ public final class StatusManagementTopComponent extends TopComponent implements 
     public synchronized void stateChanged(ChangeEvent e) {
         final Object source = e.getSource();
         SwingUtilities.invokeLater(() -> {
-            if (source instanceof VagrantStatus) {
-                VagrantStatus vagrantStatus = (VagrantStatus) source;
+            if (source instanceof VagrantStatusImpl) {
+                VagrantStatusImpl vagrantStatus = (VagrantStatusImpl) source;
                 Pair<Project, StatusLine> selectedValue = getSelectedStatus();
                 Pair<Project, StatusLine> newSelectedValue = null;
                 model.clear();

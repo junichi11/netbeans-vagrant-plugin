@@ -47,6 +47,7 @@ import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
@@ -124,7 +125,7 @@ public final class VagrantInitAction extends VagrantAction implements ChangeList
                 vagrant.workDir(new File(vagrantRootPath));
             }
             // init
-            vagrant.init(project, getBoxName(), ""); // NOI18N
+            vagrant.init(VagrantProjectImpl.create(project), getBoxName(), ""); // NOI18N
         } catch (InvalidVagrantExecutableException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }

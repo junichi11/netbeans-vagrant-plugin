@@ -45,8 +45,10 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.ImageIcon;
+import org.netbeans.api.annotations.common.CheckForNull;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.options.VagrantOptions;
 import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -79,6 +81,7 @@ public final class VagrantUtils {
     public static final String PROVISION_ICON_16 = RESOURCES_PATH + "provision.png"; // NOI18N
     public static final String OPTIONS_ICON_16 = RESOURCES_PATH + "options.png"; // NOI18N
     public static final String RUN_COMMAND_ICON_16 = RESOURCES_PATH + "run_command.png"; // NOI18N
+    public static final String VIRTUAL_MACHINE_ICON_16 = RESOURCES_PATH + "virtual_machine.png"; // NOI18N
     public static final String VAGRANTFILE = "Vagrantfile"; // NOI18N
     private static final Pattern BOX_LIST_PATTERN = Pattern.compile("\\A(?<name>[^ ]+?)( +(\\((?<provider>.+?)(, *(?<version>.+)|)\\))|)\\z"); // NOI18N
 
@@ -194,6 +197,24 @@ public final class VagrantUtils {
         return !vagrantfile.isFolder();
     }
 
+    @CheckForNull
+    public static FileObject getVagrantfile(FileObject vagrantRootDir) {
+        FileObject vagrantfile = vagrantRootDir.getFileObject(VAGRANTFILE);
+        if (vagrantfile == null) {
+            FileObject[] children = vagrantRootDir.getChildren();
+            for (FileObject child : children) {
+                if (child.isFolder()) {
+                    continue;
+                }
+                String nameExt = child.getNameExt();
+                if (VAGRANTFILE.toLowerCase().equals(nameExt.toLowerCase())) {
+                    return child;
+                }
+            }
+        }
+        return vagrantfile;
+    }
+
     /**
      * Check whether a proejct has the Vagrantfile.
      *
@@ -243,6 +264,16 @@ public final class VagrantUtils {
             return null;
         }
         return FileOwnerQuery.getOwner(target);
+    }
+
+    /**
+     * Check whether the vagrant path is set on the Options.
+     *
+     * @return {@code true} if the vagrant path is set, otherwiese {@code false}
+     */
+    public static boolean isVagrantAvailable() {
+        String vagrantPath = VagrantOptions.getInstance().getVagrantPath();
+        return !StringUtils.isEmpty(vagrantPath);
     }
 
 }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.
@@ -36,44 +36,64 @@
  * made subject to such option by the copyright holder.
  *
  * Contributor(s):
- *
- * Portions Copyrighted 2013 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.vagrant.ui.actions;
+package org.netbeans.modules.vagrant.ui.node;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.netbeans.api.project.Project;
-import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
-import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
-import org.netbeans.modules.vagrant.command.Vagrant;
-import org.netbeans.modules.vagrant.utils.VagrantUtils;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.netbeans.modules.vagrant.api.VagrantProjectGlobal;
+import org.netbeans.modules.vagrant.api.VagrantProjectRegistry;
+import org.openide.nodes.DestroyableNodesFactory;
+import org.openide.nodes.Node;
+import org.openide.util.RequestProcessor;
+import org.openide.util.WeakListeners;
 
-@ActionID(
-        category = "Vagrant",
-        id = "org.netbeans.modules.vagrant.ui.actions.VagrantResumeAction")
-@ActionRegistration(
-        displayName = "#CTL_VagrantResumeAction", lazy = false)
-@NbBundle.Messages("CTL_VagrantResumeAction=Vagrant resume")
-public class VagrantResumeAction extends VagrantAction {
+/**
+ *
+ * @author junichi11
+ */
+public class VagrantChildFactory extends DestroyableNodesFactory<VagrantProjectGlobal> implements ChangeListener {
 
-    private static final long serialVersionUID = 7166256143861970176L;
-    private static final Logger LOGGER = Logger.getLogger(VagrantResumeAction.class.getName());
+    private final VagrantProjectRegistry registry;
+    private static final RequestProcessor RP = new RequestProcessor("Vagrant Project update or refresh", 5);
 
-    public VagrantResumeAction() {
-        super(Bundle.CTL_VagrantResumeAction(), VagrantUtils.getIcon(VagrantUtils.RESUME_ICON_16));
+    public VagrantChildFactory(VagrantProjectRegistry registry) {
+        this.registry = registry;
+    }
+
+    public void initialize() {
+        RP.post(() -> {
+            synchronized (VagrantChildFactory.this) {
+                registry.addChangeListener(WeakListeners.create(ChangeListener.class, VagrantChildFactory.this, registry));
+                updateState();
+            }
+        });
+    }
+
+    private synchronized void updateState() {
+        refresh(false);
     }
 
     @Override
-    public void actionPerformed(Project project) {
-        try {
-            Vagrant vagrant = Vagrant.getDefault();
-            vagrant.resume(VagrantProjectImpl.create(project));
-        } catch (InvalidVagrantExecutableException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
-        }
+    protected Node createNodeForKey(VagrantProjectGlobal key) {
+        return new VagrantProjectNode(key, VagrantProjectChildFactory.create(key));
     }
+
+    @Override
+    protected boolean createKeys(List<VagrantProjectGlobal> list) {
+        List<? extends VagrantProjectGlobal> projects = new ArrayList<>(registry.getProjects());
+        // TODO sort
+        list.addAll(projects);
+        return true;
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        RP.post(() -> {
+            updateState();
+        });
+    }
+
 }
