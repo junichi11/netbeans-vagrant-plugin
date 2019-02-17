@@ -48,6 +48,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.dlight.api.terminal.TerminalSupport;
 import org.netbeans.modules.nativeexecution.api.ExecutionEnvironment;
 import org.netbeans.modules.nativeexecution.api.ExecutionEnvironmentFactory;
+import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.SshInfo;
 import org.netbeans.modules.vagrant.command.Vagrant;
@@ -66,25 +67,21 @@ public final class VagrantSshAction extends VagrantAction {
 
     @Override
     public void actionPerformed(final Project project) {
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    // vagrant ssh command is not run
-                    // instead, remote terminal is opened
-                    Vagrant vagrant = Vagrant.getDefault();
-                    SshInfo sshInfo = vagrant.getSshInfo(project);
-                    if (sshInfo != null) {
-                        ExecutionEnvironment executionEnvironment = ExecutionEnvironmentFactory.createNew(
-                                sshInfo.getUser(),
-                                sshInfo.getHostName(),
-                                sshInfo.getPort());
-                        TerminalSupport.openTerminal("Vagrant", executionEnvironment, null); // NOI18N
-                    }
-                } catch (InvalidVagrantExecutableException ex) {
-                    LOGGER.log(Level.WARNING, ex.getMessage());
+        SwingUtilities.invokeLater(() -> {
+            try {
+                // vagrant ssh command is not run
+                // instead, remote terminal is opened
+                Vagrant vagrant = Vagrant.getDefault();
+                SshInfo sshInfo = vagrant.getSshInfo(VagrantProjectImpl.create(project));
+                if (sshInfo != null) {
+                    ExecutionEnvironment executionEnvironment = ExecutionEnvironmentFactory.createNew(
+                            sshInfo.getUser(),
+                            sshInfo.getHostName(),
+                            sshInfo.getPort());
+                    TerminalSupport.openTerminal("Vagrant", executionEnvironment, null); // NOI18N
                 }
+            } catch (InvalidVagrantExecutableException ex) {
+                LOGGER.log(Level.WARNING, ex.getMessage());
             }
         });
     }

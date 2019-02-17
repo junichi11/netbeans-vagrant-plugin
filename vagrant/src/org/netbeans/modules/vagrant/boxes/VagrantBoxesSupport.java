@@ -83,7 +83,7 @@ public final class VagrantBoxesSupport {
      * @return boxes
      */
     public static List<VagrantBoxItem> getCommunityBoxes() {
-        LinkedList<VagrantBoxItem> boxes = new LinkedList<VagrantBoxItem>();
+        LinkedList<VagrantBoxItem> boxes = new LinkedList<>();
         String boxesUrl = VagrantOptions.getInstance().getBoxesUrl();
         try {
             // parse HTML
@@ -123,7 +123,7 @@ public final class VagrantBoxesSupport {
      * @return boxes
      */
     public static List<VagrantBoxItem> getOfficialBoxes() {
-        LinkedList<VagrantBoxItem> boxes = new LinkedList<VagrantBoxItem>();
+        LinkedList<VagrantBoxItem> boxes = new LinkedList<>();
         try {
             // parse HTML
             Document doc = Jsoup.connect(OFFICIAL_BOXES_URL).get();

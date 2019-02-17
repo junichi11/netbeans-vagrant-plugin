@@ -58,14 +58,11 @@ public class VagrantBoxAddAction extends VagrantAction {
 
     @Override
     public void actionPerformed(Project project) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                AddBoxesPanel addPanel = AddBoxesPanel.getDefault(false);
-                DialogDescriptor descriptor = addPanel.showDialog();
-                if (descriptor.getValue() == DialogDescriptor.OK_OPTION) {
-                    addPanel.runVagrantBoxAdd();
-                }
+        SwingUtilities.invokeLater(() -> {
+            AddBoxesPanel addPanel = AddBoxesPanel.getDefault(false);
+            DialogDescriptor descriptor = addPanel.showDialog();
+            if (descriptor.getValue() == DialogDescriptor.OK_OPTION) {
+                addPanel.runVagrantBoxAdd();
             }
         });
     }

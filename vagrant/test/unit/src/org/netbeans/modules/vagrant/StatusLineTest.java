@@ -41,7 +41,6 @@
  */
 package org.netbeans.modules.vagrant;
 
-import static junit.framework.Assert.assertEquals;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

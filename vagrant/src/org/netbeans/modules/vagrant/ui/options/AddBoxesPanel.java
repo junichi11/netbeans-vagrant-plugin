@@ -72,7 +72,7 @@ public class AddBoxesPanel extends JPanel {
     private static final int MAX_RELOAD_COUNT = 5;
     private static final AddBoxesPanel INSTANCE = new AddBoxesPanel();
     private List<VagrantBoxItem> boxes;
-    private final List<VagrantBoxItem> filteredBoxes = new LinkedList<VagrantBoxItem>();
+    private final List<VagrantBoxItem> filteredBoxes = new LinkedList<>();
     private int reloadCount = 0;
 
     /**
@@ -96,7 +96,7 @@ public class AddBoxesPanel extends JPanel {
     private void init() {
         setVagrantboxesLabel();
         vagrantboxesList.setCellRenderer(new StripeListCellRenderer());
-        vagrantboxesList.setModel(new DefaultListModel<String>());
+        vagrantboxesList.setModel(new DefaultListModel<>());
         setVagrantboxesTable();
     }
 
@@ -133,20 +133,17 @@ public class AddBoxesPanel extends JPanel {
     }
 
     public void runVagrantBoxAdd() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                String boxName = getBoxName();
-                String boxUrl = getBoxUrl();
-                if (boxName.isEmpty() || boxUrl.isEmpty()) {
-                    return;
-                }
-                try {
-                    Vagrant vagrant = Vagrant.getDefault();
-                    vagrant.box(Vagrant.BOX.ADD, Arrays.asList(boxName, boxUrl));
-                } catch (InvalidVagrantExecutableException ex) {
-                    VagrantUtils.showWarnigDialog(ex.getMessage());
-                }
+        SwingUtilities.invokeLater(() -> {
+            String boxName = getBoxName();
+            String boxUrl = getBoxUrl();
+            if (boxName.isEmpty() || boxUrl.isEmpty()) {
+                return;
+            }
+            try {
+                Vagrant vagrant = Vagrant.getDefault();
+                vagrant.box(Vagrant.BOX.ADD, Arrays.asList(boxName, boxUrl));
+            } catch (InvalidVagrantExecutableException ex) {
+                VagrantUtils.showWarnigDialog(ex.getMessage());
             }
         });
     }

@@ -44,6 +44,7 @@ package org.netbeans.modules.vagrant.ui.actions;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
@@ -84,7 +85,7 @@ public final class VagrantDestroyAction extends VagrantAction {
 
         try {
             Vagrant vagrant = Vagrant.getDefault();
-            vagrant.destroy(project);
+            vagrant.destroy(VagrantProjectImpl.create(project));
         } catch (InvalidVagrantExecutableException ex) {
             LOGGER.log(Level.WARNING, ex.getMessage());
         }

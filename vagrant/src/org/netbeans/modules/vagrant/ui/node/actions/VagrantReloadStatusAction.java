@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.
@@ -36,56 +36,47 @@
  * made subject to such option by the copyright holder.
  *
  * Contributor(s):
- *
- * Portions Copyrighted 2013 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.vagrant.command;
+package org.netbeans.modules.vagrant.ui.node.actions;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import org.openide.util.Exceptions;
-import org.openide.windows.InputOutput;
-import org.openide.windows.OutputWriter;
+import org.netbeans.modules.vagrant.VagrantStatusGlobal;
+import org.netbeans.modules.vagrant.api.VagrantProjectGlobal;
+import org.netbeans.modules.vagrant.command.Vagrant;
+import org.openide.nodes.Node;
+import org.openide.util.HelpCtx;
+import org.openide.util.Lookup;
 
-/**
- *
- * @author junichi11
- */
-public class InputStreamThread extends Thread {
+public class VagrantReloadStatusAction extends AbstractVagrantNodeAction {
 
-    private final BufferedReader bufferedReader;
-    private final List<String> result = new ArrayList<String>();
-    private final InputOutput inputOutput;
-
-    InputStreamThread(InputStream inputStream, InputOutput inputOutput) {
-        bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-        this.inputOutput = inputOutput;
-    }
+    private static final long serialVersionUID = -133298803000955538L;
 
     @Override
-    public void run() {
-        try {
-            String line;
-            OutputWriter out = inputOutput.getOut();
-            try {
-                while ((line = bufferedReader.readLine()) != null) {
-                    out.println(line);
-                    result.add(line);
-                }
-            } finally {
-                out.close();
-                bufferedReader.close();
+    protected void performAction(Node[] nodes) {
+        VagrantStatusGlobal globalStatus = Lookup.getDefault().lookup(VagrantStatusGlobal.class);
+        if (globalStatus == null) {
+            return;
+        }
+        for (Node node : nodes) {
+            VagrantProjectGlobal project = node.getLookup().lookup(VagrantProjectGlobal.class);
+            if (project != null) {
+                globalStatus.update(project);
             }
-        } catch (IOException ex) {
-            Exceptions.printStackTrace(ex);
         }
     }
 
-    public List<String> getResult() {
-        return result;
+    @Override
+    protected boolean enable(Node[] nodes) {
+        return !Vagrant.isRunning();
     }
+
+    @Override
+    public String getName() {
+        return "Reload Status";
+    }
+
+    @Override
+    public HelpCtx getHelpCtx() {
+        return null;
+    }
+
 }

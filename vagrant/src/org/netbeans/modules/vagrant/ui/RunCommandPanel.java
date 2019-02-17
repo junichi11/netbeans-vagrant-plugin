@@ -59,6 +59,7 @@ import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import org.netbeans.api.annotations.common.NonNull;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
 import org.netbeans.modules.vagrant.command.CommandHistory;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.RunCommandHistory;
@@ -79,7 +80,7 @@ public class RunCommandPanel extends JPanel {
 
     private static final long serialVersionUID = -4564497771171566386L;
     private List<String> commands;
-    private final Map<String, String> helpMap = new HashMap<String, String>();
+    private final Map<String, String> helpMap = new HashMap<>();
     private static final RunCommandPanel INSTANCE = new RunCommandPanel();
     private Project project;
     private static final Logger LOGGER = Logger.getLogger(RunCommandPanel.class.getName());
@@ -110,31 +111,28 @@ public class RunCommandPanel extends JPanel {
     private void update() {
         final DefaultListModel<String> model = getListModel();
         model.clear();
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    // get command list
-                    Vagrant vagrant = Vagrant.getDefault();
-                    commands = vagrant.getCommandListLines();
-                    int i = 0;
+        SwingUtilities.invokeLater(() -> {
+            try {
+                // get command list
+                Vagrant vagrant = Vagrant.getDefault();
+                commands = vagrant.getCommandListLines();
+                int i = 0;
 
-                    // set command list
-                    for (String command : commands) {
-                        // #8 command may have description
-                        String description = ""; // NOI18N
-                        int indexOf = command.indexOf(" "); // NOI18N
-                        if (indexOf != -1) {
-                            description = command.substring(indexOf);
-                            command = command.substring(0, indexOf).trim();
-                            commands.set(i, command);
-                        }
-                        model.add(i, String.format("<html><b>%s</b>%s</html>", command, description)); // NOI18N
-                        i++;
+                // set command list
+                for (String command : commands) {
+                    // #8 command may have description
+                    String description = ""; // NOI18N
+                    int indexOf = command.indexOf(" "); // NOI18N
+                    if (indexOf != -1) {
+                        description = command.substring(indexOf);
+                        command = command.substring(0, indexOf).trim();
+                        commands.set(i, command);
                     }
-                } catch (InvalidVagrantExecutableException ex) {
-                    LOGGER.log(Level.WARNING, ex.getMessage());
+                    model.add(i, String.format("<html><b>%s</b>%s</html>", command, description)); // NOI18N
+                    i++;
                 }
+            } catch (InvalidVagrantExecutableException ex) {
+                LOGGER.log(Level.WARNING, ex.getMessage());
             }
         });
     }
@@ -178,7 +176,7 @@ public class RunCommandPanel extends JPanel {
         try {
             // run command
             Vagrant vagrant = Vagrant.getDefault();
-            vagrant.runCommand(project, command, Bundle.RunCommandPanel_run_command(getCommand()), params);
+            vagrant.runCommand(VagrantProjectImpl.create(project), command, Bundle.RunCommandPanel_run_command(getCommand()), params);
         } catch (InvalidVagrantExecutableException ex) {
             hasError = true;
             LOGGER.log(Level.WARNING, ex.getMessage());
@@ -236,7 +234,7 @@ public class RunCommandPanel extends JPanel {
 
     private void addSubcommands(String command, int selectedIndex) throws InvalidVagrantExecutableException {
         String[] split = command.split(" "); // NOI18N
-        ArrayList<String> subcommands = new ArrayList<String>();
+        ArrayList<String> subcommands = new ArrayList<>();
         subcommands.addAll(Arrays.asList(split));
         Vagrant vagrant = Vagrant.getDefault();
         List<String> subcommandList = vagrant.getSubcommandListLines(subcommands);

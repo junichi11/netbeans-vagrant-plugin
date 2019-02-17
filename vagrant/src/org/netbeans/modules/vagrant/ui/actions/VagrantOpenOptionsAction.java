@@ -62,12 +62,8 @@ public class VagrantOpenOptionsAction extends VagrantAction {
 
     @Override
     public void actionPerformed(Project project) {
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                UiUtils.showOptions();
-            }
+        SwingUtilities.invokeLater(() -> {
+            UiUtils.showOptions();
         });
     }
 }

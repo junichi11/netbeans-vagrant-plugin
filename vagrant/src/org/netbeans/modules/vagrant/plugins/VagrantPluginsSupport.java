@@ -71,7 +71,7 @@ public final class VagrantPluginsSupport {
      * @return plugins
      */
     public static List<VagrantPluginItem> getPlugins() {
-        LinkedList<VagrantPluginItem> plugins = new LinkedList<VagrantPluginItem>();
+        LinkedList<VagrantPluginItem> plugins = new LinkedList<>();
         try {
             // parse HTML
             Document doc = Jsoup.connect(VAGRANT_PLUGINS_URL).get();

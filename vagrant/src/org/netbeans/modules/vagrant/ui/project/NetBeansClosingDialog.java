@@ -62,6 +62,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectInformation;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.modules.vagrant.StatusLine;
+import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.openide.util.Exceptions;
@@ -98,7 +99,7 @@ public class NetBeansClosingDialog extends JDialog {
         setTitle(Bundle.NetBeansClosingDialog_title());
 
         // add projects to list
-        DefaultListModel<Pair<Project, StatusLine>> model = new DefaultListModel<Pair<Project, StatusLine>>();
+        DefaultListModel<Pair<Project, StatusLine>> model = new DefaultListModel<>();
         for (Pair<Project, StatusLine> s : status) {
             model.addElement(s);
         }
@@ -251,7 +252,7 @@ public class NetBeansClosingDialog extends JDialog {
             try {
                 Vagrant vagrant = Vagrant.getDefault();
                 String name = s.second().getName();
-                vagrant.halt(s.first(), name);
+                vagrant.halt(VagrantProjectImpl.create(s.first()), name);
                 DefaultListModel<Pair<Project, StatusLine>> model = (DefaultListModel<Pair<Project, StatusLine>>) projectList.getModel();
                 model.removeElement(s);
             } catch (InvalidVagrantExecutableException ex) {

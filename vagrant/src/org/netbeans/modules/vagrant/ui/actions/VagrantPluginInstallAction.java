@@ -58,14 +58,11 @@ public class VagrantPluginInstallAction extends VagrantAction {
 
     @Override
     public void actionPerformed(Project project) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                AddPluginsPanel addPanel = AddPluginsPanel.getDefault();
-                DialogDescriptor descriptor = addPanel.showDialog();
-                if (descriptor.getValue() == DialogDescriptor.OK_OPTION) {
-                    addPanel.runVagrantPluginInstall();
-                }
+        SwingUtilities.invokeLater(() -> {
+            AddPluginsPanel addPanel = AddPluginsPanel.getDefault();
+            DialogDescriptor descriptor = addPanel.showDialog();
+            if (descriptor.getValue() == DialogDescriptor.OK_OPTION) {
+                addPanel.runVagrantPluginInstall();
             }
         });
     }

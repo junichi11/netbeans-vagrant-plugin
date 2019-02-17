@@ -47,6 +47,7 @@ import javax.swing.SwingUtilities;
 import org.netbeans.api.annotations.common.CheckForNull;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.VagrantInstaller;
+import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -73,26 +74,22 @@ public enum ProjectClosedAction {
 
                 @Override
                 void runAction(Project project, Vagrant vagrant) {
-                    vagrant.halt(project);
+                    vagrant.halt(VagrantProjectImpl.create(project));
                 }
             },
     HALT_ASK("halt-ask") { // NOI18N
 
                 @Override
                 void runAction(final Project project, final Vagrant vagrant) {
-                    SwingUtilities.invokeLater(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            NotifyDescriptor.Confirmation confirmation = new NotifyDescriptor.Confirmation(
-                                    Bundle.ProjectClosedAction_closed_message(project.getProjectDirectory().getName()),
-                                    NotifyDescriptor.YES_NO_OPTION,
-                                    NotifyDescriptor.QUESTION_MESSAGE
-                            );
-                            // run halt command
-                            if (DialogDisplayer.getDefault().notify(confirmation) == NotifyDescriptor.YES_OPTION) {
-                                vagrant.halt(project);
-                            }
+                    SwingUtilities.invokeLater(() -> {
+                        NotifyDescriptor.Confirmation confirmation = new NotifyDescriptor.Confirmation(
+                                Bundle.ProjectClosedAction_closed_message(project.getProjectDirectory().getName()),
+                                NotifyDescriptor.YES_NO_OPTION,
+                                NotifyDescriptor.QUESTION_MESSAGE
+                        );
+                        // run halt command
+                        if (DialogDisplayer.getDefault().notify(confirmation) == NotifyDescriptor.YES_OPTION) {
+                            vagrant.halt(VagrantProjectImpl.create(project));
                         }
                     });
                 }

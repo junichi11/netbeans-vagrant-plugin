@@ -61,6 +61,7 @@ import javax.swing.event.ChangeListener;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.vagrant.StatusLine;
 import org.netbeans.modules.vagrant.VagrantStatus;
+import org.netbeans.modules.vagrant.VagrantStatusImpl;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
 import org.netbeans.modules.vagrant.ui.actions.VagrantAction;
 import org.netbeans.modules.vagrant.ui.actions.VagrantActionMenu;
@@ -88,7 +89,7 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
     private Lookup.Result<DataObject> result = null;
     private final JLabel statusLabel = new JLabel(""); // NOI18N
     private Project project;
-    private final Map<Project, String> statusCache = new HashMap<Project, String>();
+    private final Map<Project, String> statusCache = new HashMap<>();
     private boolean isShowStatus;
     private static final RequestProcessor RP = new RequestProcessor(VagrantStatusLineElement.class);
 
@@ -180,14 +181,10 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
             return;
         }
 
-        RP.post(new Runnable() {
-            @Override
-            public void run() {
-                String status = getStatus(project, false);
-
-                // update view
-                setStatus(status);
-            }
+        RP.post(() -> {
+            String status1 = getStatus(project, false);
+            // update view
+            setStatus(status1);
         });
     }
 
@@ -213,23 +210,19 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
             return;
         }
 
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                if (status == null) {
-                    clearStatusLabel();
-                    return;
-                }
-                int indexOfComma = status.indexOf(","); // NOI18N
-                String statusText = status;
-                if (indexOfComma != -1) {
-                    statusText = status.substring(0, indexOfComma);
-                }
-                statusLabel.setText(statusText);
-                statusLabel.setToolTipText(status);
-                statusLabel.setIcon(VagrantUtils.getIcon(VagrantUtils.VAGRANT_ICON_16));
+        SwingUtilities.invokeLater(() -> {
+            if (status == null) {
+                clearStatusLabel();
+                return;
             }
+            int indexOfComma = status.indexOf(","); // NOI18N
+            String statusText = status;
+            if (indexOfComma != -1) {
+                statusText = status.substring(0, indexOfComma);
+            }
+            statusLabel.setText(statusText);
+            statusLabel.setToolTipText(status);
+            statusLabel.setIcon(VagrantUtils.getIcon(VagrantUtils.VAGRANT_ICON_16));
         });
     }
 
@@ -245,15 +238,11 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
             return;
         }
 
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                project = null;
-                statusLabel.setText(""); // NOI18N
-                statusLabel.setToolTipText(""); // NOI18N
-                statusLabel.setIcon(null);
-            }
+        SwingUtilities.invokeLater(() -> {
+            project = null;
+            statusLabel.setText(""); // NOI18N
+            statusLabel.setToolTipText(""); // NOI18N
+            statusLabel.setIcon(null);
         });
     }
 
@@ -271,15 +260,11 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
         }
 
         if (isForce) {
-            final VagrantStatus vagrantStatus = Lookup.getDefault().lookup(VagrantStatus.class);
+            final VagrantStatus vagrantStatus = Lookup.getDefault().lookup(VagrantStatusImpl.class);
             if (vagrantStatus != null) {
-                RP.execute(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        setStatus(Bundle.VagrantStatusLineElement_reload());
-                        vagrantStatus.update(project);
-                    }
+                RP.execute(() -> {
+                    setStatus(Bundle.VagrantStatusLineElement_reload());
+                    vagrantStatus.update(project);
                 });
             }
             return ""; // NOI18N
@@ -331,8 +316,8 @@ public class VagrantStatusLineElement implements StatusLineElementProvider, Look
     @Override
     public synchronized void stateChanged(ChangeEvent e) {
         Object source = e.getSource();
-        if (source instanceof VagrantStatus) {
-            VagrantStatus vagrantStatus = (VagrantStatus) source;
+        if (source instanceof VagrantStatusImpl) {
+            VagrantStatusImpl vagrantStatus = (VagrantStatusImpl) source;
             statusCache.clear();
             for (Pair<Project, StatusLine> status : vagrantStatus.getAll()) {
                 Project p = status.first();

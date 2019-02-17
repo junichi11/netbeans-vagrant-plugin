@@ -57,7 +57,7 @@ final class VagrantPanel extends JPanel implements ChangeListener {
 
     private static final long serialVersionUID = -1753068861030271686L;
     private final VagrantOptionsPanelController controller;
-    private final Map<String, VagrantCategoryPanel> categoryPanels = new HashMap<String, VagrantCategoryPanel>();
+    private final Map<String, VagrantCategoryPanel> categoryPanels = new HashMap<>();
 
     public VagrantPanel(VagrantOptionsPanelController controller) {
         this.controller = controller;
@@ -66,7 +66,7 @@ final class VagrantPanel extends JPanel implements ChangeListener {
     }
 
     private void init() {
-        categoryList.setModel(new DefaultListModel<String>());
+        categoryList.setModel(new DefaultListModel<>());
     }
 
     public void addCategoryPanel(String name, VagrantCategoryPanel panel) {

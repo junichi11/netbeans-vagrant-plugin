@@ -42,7 +42,6 @@
 package org.netbeans.modules.vagrant;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -53,11 +52,11 @@ import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectInformation;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.api.project.ui.OpenProjects;
+import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
-import org.netbeans.modules.vagrant.options.VagrantOptions;
-import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
+import static org.netbeans.modules.vagrant.utils.VagrantUtils.isVagrantAvailable;
 import org.openide.util.ChangeSupport;
 import org.openide.util.Pair;
 import org.openide.util.RequestProcessor;
@@ -69,26 +68,22 @@ import org.openide.util.lookup.ServiceProvider;
  * @author junichi11
  */
 @ServiceProvider(service = VagrantStatus.class)
-public final class VagrantStatusImpl implements VagrantStatus {
+public final class VagrantStatusImpl implements VagrantStatus<Project> {
 
     private final ChangeSupport changeSupport = new ChangeSupport(this);
     private static final Map<Project, List<Pair<Project, StatusLine>>> VAGRANT_STATUS
-            = new TreeMap<Project, List<Pair<Project, StatusLine>>>(new Comparator<Project>() {
-
-                @Override
-                public int compare(Project p1, Project p2) {
-                    ProjectInformation info1 = ProjectUtils.getInformation(p1);
-                    ProjectInformation info2 = ProjectUtils.getInformation(p2);
-                    return info1.getDisplayName().compareTo(info2.getDisplayName());
-                }
-            });
+            = new TreeMap<>((Project p1, Project p2) -> {
+                ProjectInformation info1 = ProjectUtils.getInformation(p1);
+                ProjectInformation info2 = ProjectUtils.getInformation(p2);
+                return info1.getDisplayName().compareTo(info2.getDisplayName());
+    });
     private static final RequestProcessor RP = new RequestProcessor(VagrantStatusImpl.class);
     private static final Logger LOGGER = Logger.getLogger(VagrantStatusImpl.class.getName());
     private final Object lock = new Object();
 
     @Override
     public List<Pair<Project, StatusLine>> getAll() {
-        ArrayList<Pair<Project, StatusLine>> allList = new ArrayList<Pair<Project, StatusLine>>();
+        ArrayList<Pair<Project, StatusLine>> allList = new ArrayList<>();
         synchronized (lock) {
             for (List<Pair<Project, StatusLine>> list : VAGRANT_STATUS.values()) {
                 allList.addAll(list);
@@ -100,7 +95,7 @@ public final class VagrantStatusImpl implements VagrantStatus {
 
     @Override
     public List<StatusLine> get(Project project) {
-        ArrayList<StatusLine> allStatus = new ArrayList<StatusLine>();
+        ArrayList<StatusLine> allStatus = new ArrayList<>();
         synchronized (lock) {
             List<Pair<Project, StatusLine>> statusList = VAGRANT_STATUS.get(project);
             if (statusList == null) {
@@ -114,10 +109,15 @@ public final class VagrantStatusImpl implements VagrantStatus {
     }
 
     private void add(Project project) {
+        if (Vagrant.isRunning()) {
+            LOGGER.log(Level.FINE, "Vagrant command is running...");
+        }
         try {
             Vagrant vagrant = Vagrant.getDefault();
-            List<StatusLine> statusLines = vagrant.getStatusLines(project);
-            ArrayList<Pair<Project, StatusLine>> list = new ArrayList<Pair<Project, StatusLine>>(statusLines.size());
+            Vagrant.setRunning(true);
+            List<StatusLine> statusLines = vagrant.getStatusLines(VagrantProjectImpl.create(project));
+            Vagrant.setRunning(false);
+            ArrayList<Pair<Project, StatusLine>> list = new ArrayList<>(statusLines.size());
             for (StatusLine statusLine : statusLines) {
                 Pair<Project, StatusLine> pair = Pair.of(project, statusLine);
                 list.add(pair);
@@ -149,16 +149,12 @@ public final class VagrantStatusImpl implements VagrantStatus {
         // XXX may return FeatureProjectFactory$FeatureNonProject
         // It's occurred if some projects is already opened when plugin is installed
         // Workaround: reboot NetBeans or reopen projects
-        RP.post(new Runnable() {
-
-            @Override
-            public void run() {
-                OpenProjects projects = OpenProjects.getDefault();
-                for (Project project : projects.getOpenProjects()) {
-                    add(project);
-                }
-                fireChange();
+        RP.post(() -> {
+            OpenProjects projects = OpenProjects.getDefault();
+            for (Project project : projects.getOpenProjects()) {
+                add(project);
             }
+            fireChange();
         });
     }
 
@@ -167,16 +163,12 @@ public final class VagrantStatusImpl implements VagrantStatus {
         if (!isVagrantAvailable() || !VagrantUtils.hasVagrantfile(project)) {
             return;
         }
-        RP.post(new Runnable() {
-
-            @Override
-            public void run() {
-                synchronized (lock) {
-                    VAGRANT_STATUS.remove(project);
-                }
-                add(project);
-                fireChange();
+        RP.post(() -> {
+            synchronized (lock) {
+                VAGRANT_STATUS.remove(project);
             }
+            add(project);
+            fireChange();
         });
     }
 
@@ -196,11 +188,6 @@ public final class VagrantStatusImpl implements VagrantStatus {
     @Override
     public void removeChangeListener(ChangeListener listener) {
         changeSupport.removeChangeListener(listener);
-    }
-
-    private boolean isVagrantAvailable() {
-        String vagrantPath = VagrantOptions.getInstance().getVagrantPath();
-        return !StringUtils.isEmpty(vagrantPath);
     }
 
     private void fireChange() {

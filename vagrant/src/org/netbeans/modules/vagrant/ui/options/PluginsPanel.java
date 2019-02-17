@@ -138,31 +138,25 @@ public final class PluginsPanel extends VagrantCategoryPanel {
         }
 
         // run command
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+        new Thread(() -> {
+            try {
+                Vagrant vagrant = Vagrant.getDefault();
+                Future<Integer> result = vagrant.plugin(command, Arrays.asList(pluginName));
                 try {
-                    Vagrant vagrant = Vagrant.getDefault();
-                    Future<Integer> result = vagrant.plugin(command, Arrays.asList(pluginName));
-                    try {
-                        result.get();
-                    } catch (InterruptedException ex) {
-                        Exceptions.printStackTrace(ex);
-                    } catch (ExecutionException ex) {
-                        Exceptions.printStackTrace(ex);
-                    }
-
-                    // reaload
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            AddPluginsPanel.getDefault().removeInstalledPlugin(pluginName);
-                            reload();
-                        }
-                    });
-                } catch (InvalidVagrantExecutableException ex) {
-                    LOGGER.log(Level.WARNING, ex.getMessage());
+                    result.get();
+                } catch (InterruptedException ex) {
+                    Exceptions.printStackTrace(ex);
+                } catch (ExecutionException ex) {
+                    Exceptions.printStackTrace(ex);
                 }
+
+                // reaload
+                SwingUtilities.invokeLater(() -> {
+                    AddPluginsPanel.getDefault().removeInstalledPlugin(pluginName);
+                    reload();
+                });
+            } catch (InvalidVagrantExecutableException ex) {
+                LOGGER.log(Level.WARNING, ex.getMessage());
             }
         }).start();
     }
@@ -309,15 +303,12 @@ public final class PluginsPanel extends VagrantCategoryPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void installButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_installButtonActionPerformed
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                AddPluginsPanel panel = AddPluginsPanel.getDefault();
-                DialogDescriptor discriptor = panel.showDialog();
-                if (discriptor.getValue() == DialogDescriptor.OK_OPTION) {
-                    panel.runVagrantPluginInstall();
-                    reload();
-                }
+        SwingUtilities.invokeLater(() -> {
+            AddPluginsPanel panel = AddPluginsPanel.getDefault();
+            DialogDescriptor discriptor = panel.showDialog();
+            if (discriptor.getValue() == DialogDescriptor.OK_OPTION) {
+                panel.runVagrantPluginInstall();
+                reload();
             }
         });
 
