@@ -69,15 +69,11 @@ import org.netbeans.api.extexecution.base.input.InputProcessor;
 import org.netbeans.api.extexecution.base.input.InputProcessors;
 import org.netbeans.api.extexecution.base.input.LineProcessor;
 import org.netbeans.api.project.Project;
-import org.netbeans.api.project.ProjectInformation;
-import org.netbeans.api.project.ProjectUtils;
-import org.netbeans.api.project.ui.OpenProjects;
 import org.netbeans.modules.vagrant.StatusLine;
-import org.netbeans.modules.vagrant.VagrantStatus;
 import org.netbeans.modules.vagrant.VagrantVersion;
 import org.netbeans.modules.vagrant.Versionable;
+import org.netbeans.modules.vagrant.api.VagrantProject;
 import org.netbeans.modules.vagrant.options.VagrantOptions;
-import org.netbeans.modules.vagrant.preferences.VagrantPreferences;
 import org.netbeans.modules.vagrant.utils.StringUtils;
 import org.netbeans.modules.vagrant.utils.UiUtils;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
@@ -88,7 +84,6 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.ChangeSupport;
 import org.openide.util.Exceptions;
-import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.windows.InputOutput;
 
@@ -169,6 +164,8 @@ public final class Vagrant {
     private final List<String> fullCommand = new ArrayList<>();
     private Versionable version;
 
+    private static boolean isRunning;
+
     public Vagrant(String path) {
         this.path = path;
     }
@@ -189,6 +186,14 @@ public final class Vagrant {
         }
         UiUtils.showOptions();
         throw new InvalidVagrantExecutableException(error);
+    }
+
+    public static synchronized void setRunning(boolean isRunning) {
+        Vagrant.isRunning = isRunning;
+    }
+
+    public static synchronized boolean isRunning() {
+        return isRunning;
     }
 
     /**
@@ -267,7 +272,7 @@ public final class Vagrant {
     }
 
     @NbBundle.Messages("Vagrant.run.init=Vagrant (init)")
-    public Future<Integer> init(Project project, String boxName, String boxUrl) {
+    public Future<Integer> init(VagrantProject project, String boxName, String boxUrl) {
         ArrayList<String> params = new ArrayList<>();
         if (!boxName.isEmpty()) {
             params.add(boxName);
@@ -283,15 +288,15 @@ public final class Vagrant {
     }
 
     @NbBundle.Messages("Vagrant.run.up=Vagrant (up)")
-    public Future<Integer> up(Project project) {
+    public Future<Integer> up(VagrantProject project) {
         return runCommand(project, UP_COMMAND, Bundle.Vagrant_run_up());
     }
 
-    public Future<Integer> up(Project project, String name) {
+    public Future<Integer> up(VagrantProject project, String name) {
         return runCommand(project, UP_COMMAND, Bundle.Vagrant_run_up(), Arrays.asList(name));
     }
 
-    public Future<Integer> up(Project project, String name, String provider) {
+    public Future<Integer> up(VagrantProject project, String name, String provider) {
         List<String> params = new ArrayList<>();
         if (!StringUtils.isEmpty(provider)) {
             params.add("--provider");
@@ -301,67 +306,77 @@ public final class Vagrant {
         return runCommand(project, UP_COMMAND, Bundle.Vagrant_run_up(), params);
     }
 
+    public Future<Integer> up(VagrantProject project, org.netbeans.modules.vagrant.ui.node.VirtualMachine virtualMachine) {
+        List<String> params = new ArrayList<>();
+        if (!StringUtils.isEmpty(virtualMachine.getProvider())) {
+            params.add("--provider");
+            params.add(virtualMachine.getProvider());
+        }
+        params.add(virtualMachine.getName());
+        return runCommand(project, UP_COMMAND, Bundle.Vagrant_run_up(), params);
+    }
+
     @NbBundle.Messages("Vagrant.run.reload=Vagrant (reload)")
-    public Future<Integer> reload(Project project) {
+    public Future<Integer> reload(VagrantProject project) {
         return runCommand(project, RELOAD_COMMAND, Bundle.Vagrant_run_reload());
     }
 
-    public Future<Integer> reload(Project project, String name) {
+    public Future<Integer> reload(VagrantProject project, String name) {
         return runCommand(project, RELOAD_COMMAND, Bundle.Vagrant_run_reload(), Arrays.asList(name));
     }
 
     @NbBundle.Messages("Vagrant.run.halt=Vagrant (halt)")
-    public Future<Integer> halt(Project project) {
+    public Future<Integer> halt(VagrantProject project) {
         return runCommand(project, HALT_COMMAND, Bundle.Vagrant_run_halt());
     }
 
-    public Future<Integer> halt(Project project, String name) {
+    public Future<Integer> halt(VagrantProject project, String name) {
         return runCommand(project, HALT_COMMAND, Bundle.Vagrant_run_halt(), Arrays.asList(name));
     }
 
     @NbBundle.Messages("Vagrant.run.suspend=Vagrant (suspend)")
-    public Future<Integer> suspend(Project project) {
+    public Future<Integer> suspend(VagrantProject project) {
         return runCommand(project, SUSPEND_COMMAND, Bundle.Vagrant_run_suspend());
     }
 
-    public Future<Integer> suspend(Project project, String name) {
+    public Future<Integer> suspend(VagrantProject project, String name) {
         return runCommand(project, SUSPEND_COMMAND, Bundle.Vagrant_run_suspend(), Arrays.asList(name));
     }
 
     @NbBundle.Messages("Vagrant.run.resume=Vagrant (resume)")
-    public Future<Integer> resume(Project project) {
+    public Future<Integer> resume(VagrantProject project) {
         return runCommand(project, RESUME_COMMAND, Bundle.Vagrant_run_resume());
     }
 
-    public Future<Integer> resume(Project project, String name) {
+    public Future<Integer> resume(VagrantProject project, String name) {
         return runCommand(project, RESUME_COMMAND, Bundle.Vagrant_run_resume(), Arrays.asList(name));
     }
 
     @NbBundle.Messages("Vagrant.run.share=Vagrant (share)")
-    public Future<Integer> share(Project project) {
+    public Future<Integer> share(VagrantProject project) {
         return runCommand(project, SHARE_COMMAND, Bundle.Vagrant_run_share());
     }
 
     @NbBundle.Messages("Vagrant.run.status=Vagrant (status)")
-    public Future<Integer> status(Project project) {
+    public Future<Integer> status(VagrantProject project) {
         return runCommand(project, STATUS_COMMAND, Bundle.Vagrant_run_status());
     }
 
-    public Future<Integer> status(Project project, String name) {
+    public Future<Integer> status(VagrantProject project, String name) {
         return runCommand(project, STATUS_COMMAND, Bundle.Vagrant_run_status(), Arrays.asList(name));
     }
 
     @NbBundle.Messages("Vagrant.run.ssh=Vagrant (ssh)")
-    public Future<Integer> ssh(Project project) {
+    public Future<Integer> ssh(VagrantProject project) {
         return runCommand(project, SSH_COMMAND, Bundle.Vagrant_run_ssh());
     }
 
-    public Future<Integer> ssh(Project project, String name) {
+    public Future<Integer> ssh(VagrantProject project, String name) {
         return runCommand(project, SSH_COMMAND, Bundle.Vagrant_run_ssh(), Arrays.asList(name));
     }
 
     @NbBundle.Messages("Vagrant.run.ssh.config=Vagrant (ssh-config)")
-    public Future<Integer> sshConfig(Project project) {
+    public Future<Integer> sshConfig(VagrantProject project) {
         return runCommand(project, SSH_CONFIG_COMMAND, Bundle.Vagrant_run_ssh_config());
     }
 
@@ -370,28 +385,26 @@ public final class Vagrant {
         "# {0} - name",
         "Vagrant.run.destroy.info=vagrant destroy command was run ({0})"
     })
-    public Future<Integer> destroy(Project project) {
+    public Future<Integer> destroy(VagrantProject project) {
         // require a TTY
-        ProjectInformation information = ProjectUtils.getInformation(project);
-        String name = information.getName();
+        String name = project.getDisplayName();
         LOGGER.log(Level.INFO, Bundle.Vagrant_run_destroy_info(name));
         return runCommand(project, DESTROY_COMMAND, Bundle.Vagrant_run_destroy(), Collections.singletonList(FORCE_PARAM));
     }
 
-    public Future<Integer> destroy(Project project, String name) {
+    public Future<Integer> destroy(VagrantProject project, String name) {
         // require a TTY
-        ProjectInformation information = ProjectUtils.getInformation(project);
-        String projectName = information.getName();
+        String projectName = project.getDisplayName();
         LOGGER.log(Level.INFO, Bundle.Vagrant_run_destroy_info(projectName));
         return runCommand(project, DESTROY_COMMAND, Bundle.Vagrant_run_destroy(), Arrays.asList(FORCE_PARAM, name));
     }
 
     @NbBundle.Messages("Vagrant.run.provision=Vagrant (provision)")
-    public Future<Integer> provisiton(Project project) {
+    public Future<Integer> provisiton(VagrantProject project) {
         return runCommand(project, PROVISION_COMMAND, Bundle.Vagrant_run_provision());
     }
 
-    public Future<Integer> provisiton(Project project, String name) {
+    public Future<Integer> provisiton(VagrantProject project, String name) {
         return runCommand(project, PROVISION_COMMAND, Bundle.Vagrant_run_provision(), Arrays.asList(name));
     }
 
@@ -583,13 +596,17 @@ public final class Vagrant {
      * @param project
      * @return status lines
      */
-    public List<StatusLine> getStatusLines(Project project) {
+    public List<StatusLine> getStatusLines(VagrantProject project) {
         List<StatusLine> statusLines = new ArrayList<>();
         if (project == null) {
             return statusLines;
         }
         setWorkDir(project);
 
+        return getStatusLines(statusLines);
+    }
+
+    private List<StatusLine> getStatusLines(List<StatusLine> statusLines) {
         VagrantLineProcessor lineProcessor = new VagrantLineProcessor();
         setCommand(STATUS_COMMAND);
         descriptor = getSilentDescriptor()
@@ -612,25 +629,15 @@ public final class Vagrant {
         return statusLines;
     }
 
-    private void setWorkDir(Project project) {
-        // set working directory
-        String vagrantPath = VagrantPreferences.getVagrantAbsolutePath(project);
-        if (StringUtils.isEmpty(vagrantPath)) {
-            workDir(FileUtil.toFile(project.getProjectDirectory()));
-        } else {
-            File vagrantRoot = new File(vagrantPath);
-            if (vagrantRoot.exists()) {
-                workDir(vagrantRoot);
-            } else {
-                VagrantPreferences.setVagrantPath(project, ""); // NOI18N
-                LOGGER.log(Level.WARNING, "Vagrant root path is invalid. clear the path settings.");
-                workDir(FileUtil.toFile(project.getProjectDirectory()));
-            }
+    private void setWorkDir(VagrantProject project) {
+        File workingDirecotry = project.getWorkingDirecotry();
+        if (workingDirecotry != null && workingDirecotry.exists()) {
+            workDir(workingDirecotry);
         }
     }
 
     @CheckForNull
-    public SshInfo getSshInfo(Project project) throws InvalidVagrantExecutableException {
+    public SshInfo getSshInfo(VagrantProject project) throws InvalidVagrantExecutableException {
         if (project == null) {
             return null;
         }
@@ -750,7 +757,7 @@ public final class Vagrant {
      * @param title
      * @return
      */
-    public Future<Integer> runCommand(Project project, String command, String title) {
+    public Future<Integer> runCommand(VagrantProject project, String command, String title) {
         return runCommand(project, command, title, Collections.<String>emptyList());
     }
 
@@ -764,26 +771,24 @@ public final class Vagrant {
      * @return
      */
     @NbBundle.Messages("Vagrant.vagrant.root.invalid=Vagrant root is invalid. Please check Vagrant root settings.")
-    public Future<Integer> runCommand(Project project, String command, String title, List<String> params) {
+    public Future<Integer> runCommand(VagrantProject project, String command, String title, List<String> params) {
         if (project != null && workDir == null) {
-            FileObject workingDirectory = project.getProjectDirectory();
-            String vagrantPath = VagrantPreferences.getVagrantAbsolutePath(project);
+            File workingDirectory = project.getWorkingDirecotry();
             if (workingDirectory != null) {
                 // check only custom path
                 boolean hasVagrantfile = true;
-                if (!StringUtils.isEmpty(vagrantPath)) {
-                    File vagrantRoot = new File(vagrantPath);
-                    workingDirectory = FileUtil.toFileObject(vagrantRoot);
-                    hasVagrantfile = VagrantUtils.hasVagrantfile(workingDirectory);
+                FileObject workingDir = FileUtil.toFileObject(workingDirectory);
+                if (workingDir != null) {
+                    hasVagrantfile = VagrantUtils.hasVagrantfile(workingDir);
                 }
 
                 // vagrant root is invalid : show dialog
-                if (workingDirectory == null || !hasVagrantfile) {
+                if (workingDir == null || !hasVagrantfile) {
                     NotifyDescriptor.Message message = new NotifyDescriptor.Message(Bundle.Vagrant_vagrant_root_invalid(), NotifyDescriptor.WARNING_MESSAGE);
                     DialogDisplayer.getDefault().notify(message);
                     return null;
                 }
-                workDir = FileUtil.toFile(workingDirectory);
+                workDir = workingDirectory;
             }
         }
         List<String> commands = StringUtils.explode(command, " "); // NOI18N
@@ -803,7 +808,7 @@ public final class Vagrant {
         this.title = title;
         additionalParameters(parameters);
 
-        return run(getExecutionDescriptor(project, isUpdateStatus(command, project)));
+        return run(getExecutionDescriptor(project, canUpdateStatus(command, project)));
     }
 
     /**
@@ -811,13 +816,12 @@ public final class Vagrant {
      *
      * @param command
      * @param project
-     * @return {@code false} if halt command and project is opened, {@code true}
-     * otherwise
+     * @return {@code false} if it's halt command and project is opened,
+     * {@code true} otherwise
      */
-    private boolean isUpdateStatus(String command, Project project) {
-        if (command.equals(HALT_COMMAND)) {
-            OpenProjects projects = OpenProjects.getDefault();
-            return projects.isProjectOpen(project);
+    private boolean canUpdateStatus(String command, VagrantProject project) {
+        if (project != null) {
+            return project.canUpdateStatus(command);
         }
         return true;
     }
@@ -836,12 +840,12 @@ public final class Vagrant {
         return ExecutionService.newService(processBuilder, descriptor, title).run();
     }
 
-    private ExecutionDescriptor getExecutionDescriptor(Project project, boolean isUpdate) {
+    private ExecutionDescriptor getExecutionDescriptor(VagrantProject project, boolean canUpdateStatus) {
         if (descriptor == null) {
             ExecutionDescriptor executionDescriptor = createDefaultExecutionDescriptor()
                     .outProcessorFactory(getInfoProcessorFactory())
                     .preExecution(new RunnableImpl());
-            if (isUpdate) {
+            if (canUpdateStatus) {
                 executionDescriptor = executionDescriptor.postExecution(new RunnableImpl(project));
             }
             return executionDescriptor;
@@ -1097,12 +1101,12 @@ public final class Vagrant {
 
     private class RunnableImpl implements Runnable {
 
-        private Project project;
+        private VagrantProject project;
 
         public RunnableImpl() {
         }
 
-        public RunnableImpl(Project project) {
+        public RunnableImpl(VagrantProject project) {
             this.project = project;
         }
 
@@ -1110,11 +1114,7 @@ public final class Vagrant {
         public void run() {
             fireChange();
             if (project != null) {
-                VagrantStatus status = Lookup.getDefault().lookup(VagrantStatus.class);
-                if (status != null) {
-                    Project p = project;
-                    status.update(p);
-                }
+                project.updateStatus();
             }
             project = null;
         }

@@ -43,15 +43,25 @@ package org.netbeans.modules.vagrant.preferences;
 
 import com.google.gson.Gson;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Logger;
+import static java.util.logging.Level.WARNING;
+
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import org.netbeans.api.annotations.common.CheckForNull;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
+import org.netbeans.modules.vagrant.api.VagrantProject;
+import org.netbeans.modules.vagrant.api.VagrantProjectGlobal;
 import org.netbeans.modules.vagrant.command.RunCommandHistory;
 import org.netbeans.modules.vagrant.ui.project.ProjectClosedAction;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
+import org.openide.util.NbPreferences;
 
 /**
  *
@@ -59,10 +69,14 @@ import org.openide.util.Exceptions;
  */
 public final class VagrantPreferences {
 
+    private static final Logger LOGGER = Logger.getLogger(VagrantPreferences.class.getName());
     private static final String VAGRANT_PATH = "vagrant-path"; // NOI18N
     private static final String PROJECT_CLOSED_ACTION = "project-closed-action"; // NOI18N
     private static final String SAVE_RUN_COMMAND_HISTORIES = "save-run-command-histories"; // NOI18N
     private static final String RUN_COMMAND_HISTORY = "run-command-history"; // NOI18N
+    private static final String PROJECTS = "projects"; // NOI18N
+    public static final String DISPLAY_NAME = "display-name"; // NOI18N
+    public static final String VAGRANT_ROOT = "vagrant-root"; // NOI18N
 
     private VagrantPreferences() {
     }
@@ -155,5 +169,74 @@ public final class VagrantPreferences {
 
     private static Preferences getPreferences(Project project, boolean isShared) {
         return ProjectUtils.getPreferences(project, VagrantPreferences.class, isShared);
+    }
+
+    // Services Tab Settings
+    public static String getDisplayName(VagrantProjectGlobal project) {
+        return getGlobalPreferences().node(escapePath(project.getVagrantRootPath())).get(DISPLAY_NAME, null);
+    }
+
+    public static void setDisplayName(VagrantProjectGlobal project) {
+        getGlobalPreferences().node(escapePath(project.getVagrantRootPath())).put(DISPLAY_NAME, project.getDisplayName());
+    }
+
+    @CheckForNull
+    public static String getVagrantRoot(VagrantProjectGlobal project) {
+        return getGlobalPreferences().node(escapePath(project.getVagrantRootPath())).get(VAGRANT_ROOT, null);
+    }
+
+    public static void setVagrantRoot(VagrantProjectGlobal project) {
+        getGlobalPreferences().node(escapePath(project.getVagrantRootPath())).put(VAGRANT_ROOT, project.getVagrantRootPath());
+    }
+
+    public static void setVagrantProject(VagrantProjectGlobal project) {
+        setVagrantRoot(project);
+        setDisplayName(project);
+    }
+
+    public static void deleteVagrantProject(VagrantProject project) {
+        Preferences node = getGlobalPreferences().node(escapePath(project.getVagrantRootPath()));
+        try {
+            node.removeNode();
+        } catch (BackingStoreException ex) {
+            // TODO
+        }
+    }
+
+    private static String escapePath(String path) {
+        return path.replaceAll("[:/]", "_"); // NOI18N
+    }
+
+    public static Collection<? extends VagrantProjectGlobal> getAllProjects() {
+        Preferences preferences = getGlobalPreferences();
+        List<VagrantProjectGlobal> projects = new ArrayList<>();
+        try {
+            String[] names = preferences.childrenNames();
+            for (String name : names) {
+                Preferences child = preferences.node(name);
+                String displayName = child.get(DISPLAY_NAME, null);
+                String vagrantRoot = child.get(VAGRANT_ROOT, null);
+                if (displayName == null || vagrantRoot == null) {
+                    // broken data
+                    child.removeNode();
+                    continue;
+                }
+                VagrantProjectGlobal project = VagrantProjectGlobal.create(displayName, vagrantRoot);
+                if (project != null) {
+                    projects.add(project);
+                }
+            }
+        } catch (BackingStoreException ex) {
+            LOGGER.log(WARNING, null, ex);
+        }
+        return projects;
+    }
+
+    public static Preferences getGlobalPreferences() {
+        return getPreferences(VagrantPreferences.class, PROJECTS); // NOI18N
+    }
+
+    private static Preferences getPreferences(Class clazz, String node) {
+        return NbPreferences.forModule(clazz).node(node);
     }
 }

@@ -59,6 +59,7 @@ import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import org.netbeans.api.annotations.common.NonNull;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
 import org.netbeans.modules.vagrant.command.CommandHistory;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.RunCommandHistory;
@@ -175,7 +176,7 @@ public class RunCommandPanel extends JPanel {
         try {
             // run command
             Vagrant vagrant = Vagrant.getDefault();
-            vagrant.runCommand(project, command, Bundle.RunCommandPanel_run_command(getCommand()), params);
+            vagrant.runCommand(VagrantProjectImpl.create(project), command, Bundle.RunCommandPanel_run_command(getCommand()), params);
         } catch (InvalidVagrantExecutableException ex) {
             hasError = true;
             LOGGER.log(Level.WARNING, ex.getMessage());

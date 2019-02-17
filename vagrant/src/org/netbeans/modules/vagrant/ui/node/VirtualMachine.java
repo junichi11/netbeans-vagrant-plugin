@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.
@@ -36,44 +36,46 @@
  * made subject to such option by the copyright holder.
  *
  * Contributor(s):
- *
- * Portions Copyrighted 2013 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.vagrant.ui.actions;
+package org.netbeans.modules.vagrant.ui.node;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.netbeans.api.project.Project;
-import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
-import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
-import org.netbeans.modules.vagrant.command.Vagrant;
-import org.netbeans.modules.vagrant.utils.VagrantUtils;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle;
+import org.netbeans.modules.vagrant.StatusLine;
 
-@ActionID(
-        category = "Vagrant",
-        id = "org.netbeans.modules.vagrant.ui.actions.VagrantResumeAction")
-@ActionRegistration(
-        displayName = "#CTL_VagrantResumeAction", lazy = false)
-@NbBundle.Messages("CTL_VagrantResumeAction=Vagrant resume")
-public class VagrantResumeAction extends VagrantAction {
+/**
+ *
+ * @author junichi11
+ */
+public class VirtualMachine {
 
-    private static final long serialVersionUID = 7166256143861970176L;
-    private static final Logger LOGGER = Logger.getLogger(VagrantResumeAction.class.getName());
+    private final StatusLine statusLine;
+    private final boolean isDummy;
 
-    public VagrantResumeAction() {
-        super(Bundle.CTL_VagrantResumeAction(), VagrantUtils.getIcon(VagrantUtils.RESUME_ICON_16));
+    public VirtualMachine(StatusLine statusLine) {
+        this(statusLine, false);
     }
 
-    @Override
-    public void actionPerformed(Project project) {
-        try {
-            Vagrant vagrant = Vagrant.getDefault();
-            vagrant.resume(VagrantProjectImpl.create(project));
-        } catch (InvalidVagrantExecutableException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
+    public VirtualMachine(StatusLine statusLine, boolean isDummy) {
+        this.statusLine = statusLine;
+        this.isDummy = isDummy;
+    }
+
+    public String getName() {
+        return statusLine.getName();
+    }
+
+    public String getProvider() {
+        return statusLine.getProvider();
+    }
+
+    public String getStatus() {
+        return statusLine.getStatus();
+    }
+
+    public String getDisplayName() {
+        if (isDummy) {
+            return "Loading...";
         }
+        return String.format("%s %s(%s)", statusLine.getName(), statusLine.getStatus(), statusLine.getProvider()); // NOI18N
     }
+
 }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.
@@ -36,44 +36,67 @@
  * made subject to such option by the copyright holder.
  *
  * Contributor(s):
- *
- * Portions Copyrighted 2013 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.vagrant.ui.actions;
+package org.netbeans.modules.vagrant.ui.node;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.netbeans.api.project.Project;
-import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
-import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
-import org.netbeans.modules.vagrant.command.Vagrant;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.Action;
+import org.netbeans.api.core.ide.ServicesTabNodeRegistration;
+import org.netbeans.modules.vagrant.api.VagrantProjectRegistry;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionRegistration;
+import org.openide.nodes.AbstractNode;
+import org.openide.nodes.Children;
 import org.openide.util.NbBundle;
+import org.openide.util.Utilities;
 
-@ActionID(
-        category = "Vagrant",
-        id = "org.netbeans.modules.vagrant.ui.actions.VagrantResumeAction")
-@ActionRegistration(
-        displayName = "#CTL_VagrantResumeAction", lazy = false)
-@NbBundle.Messages("CTL_VagrantResumeAction=Vagrant resume")
-public class VagrantResumeAction extends VagrantAction {
+/**
+ * Register a Vagrant node to Services Tab.
+ *
+ * @author junichi11
+ */
+public final class VagrantNode extends AbstractNode {
 
-    private static final long serialVersionUID = 7166256143861970176L;
-    private static final Logger LOGGER = Logger.getLogger(VagrantResumeAction.class.getName());
+    private static VagrantNode node;
 
-    public VagrantResumeAction() {
-        super(Bundle.CTL_VagrantResumeAction(), VagrantUtils.getIcon(VagrantUtils.RESUME_ICON_16));
+    public VagrantNode(VagrantChildFactory factory, String displayName, String shortDescription, String iconBase) {
+        super(Children.create(factory, true));
+        setName(""); // NOI18N
+        setDisplayName(displayName);
+        setShortDescription(shortDescription);
+        setIconBaseWithExtension(iconBase);
+    }
+
+    @NbBundle.Messages({
+        "VagrantNode.displayName=Vagrant",
+        "VagrantNode.shortDescription=Vagrant"
+    })
+    @ServicesTabNodeRegistration(
+            name = "vagrant",
+            displayName = "#VagrantNode.displayName",
+            shortDescription = "#VagrantNode.shortDescription",
+            iconResource = VagrantUtils.VAGRANT_ICON_16,
+            position = 2000
+    )
+    public static synchronized VagrantNode getInstance() {
+        if (node == null) {
+            VagrantChildFactory factory = new VagrantChildFactory(VagrantProjectRegistry.getDefault());
+            factory.initialize();
+            node = new VagrantNode(
+                    factory,
+                    Bundle.VagrantNode_displayName(),
+                    Bundle.VagrantNode_shortDescription(),
+                    VagrantUtils.VAGRANT_ICON_16
+            );
+        }
+        return node;
     }
 
     @Override
-    public void actionPerformed(Project project) {
-        try {
-            Vagrant vagrant = Vagrant.getDefault();
-            vagrant.resume(VagrantProjectImpl.create(project));
-        } catch (InvalidVagrantExecutableException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
-        }
+    public Action[] getActions(boolean context) {
+        List<Action> actions = new ArrayList<>();
+        actions.addAll(Utilities.actionsForPath("Vagrant/Wizard")); // NOI18N
+        return actions.toArray(new Action[actions.size()]);
     }
+
 }

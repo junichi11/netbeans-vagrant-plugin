@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved.
  *
  * Oracle and Java are registered trademarks of Oracle and/or its affiliates.
  * Other names may be trademarks of their respective owners.
@@ -36,44 +36,59 @@
  * made subject to such option by the copyright holder.
  *
  * Contributor(s):
- *
- * Portions Copyrighted 2013 Sun Microsystems, Inc.
  */
-package org.netbeans.modules.vagrant.ui.actions;
+package org.netbeans.modules.vagrant.ui.node.actions;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.netbeans.api.project.Project;
-import org.netbeans.modules.vagrant.api.VagrantProjectImpl;
-import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
-import org.netbeans.modules.vagrant.command.Vagrant;
+import java.io.File;
+import org.netbeans.modules.vagrant.api.VagrantProjectGlobal;
+import org.netbeans.modules.vagrant.utils.UiUtils;
 import org.netbeans.modules.vagrant.utils.VagrantUtils;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionRegistration;
-import org.openide.util.NbBundle;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
+import org.openide.nodes.Node;
+import org.openide.util.HelpCtx;
 
-@ActionID(
-        category = "Vagrant",
-        id = "org.netbeans.modules.vagrant.ui.actions.VagrantResumeAction")
-@ActionRegistration(
-        displayName = "#CTL_VagrantResumeAction", lazy = false)
-@NbBundle.Messages("CTL_VagrantResumeAction=Vagrant resume")
-public class VagrantResumeAction extends VagrantAction {
+public class OpenVagrantfileAction extends AbstractVagrantNodeAction {
 
-    private static final long serialVersionUID = 7166256143861970176L;
-    private static final Logger LOGGER = Logger.getLogger(VagrantResumeAction.class.getName());
+    private static final long serialVersionUID = 8940374836297096509L;
 
-    public VagrantResumeAction() {
-        super(Bundle.CTL_VagrantResumeAction(), VagrantUtils.getIcon(VagrantUtils.RESUME_ICON_16));
+    @Override
+    protected void performAction(Node[] nodes) {
+        for (Node node : nodes) {
+            VagrantProjectGlobal project = node.getLookup().lookup(VagrantProjectGlobal.class);
+            if (project != null) {
+                String vagrantFilePath = project.getVagrantRootPath();
+                File file = new File(vagrantFilePath);
+                if (!file.exists()) {
+                    continue;
+                }
+                FileObject vagrantRootDir = FileUtil.toFileObject(file);
+                if (vagrantRootDir == null) {
+                    continue;
+                }
+                FileObject vagrantfile = VagrantUtils.getVagrantfile(vagrantRootDir);
+                if (vagrantfile != null) {
+                    UiUtils.open(vagrantfile);
+                }
+            }
+            // only the first node
+            break;
+        }
     }
 
     @Override
-    public void actionPerformed(Project project) {
-        try {
-            Vagrant vagrant = Vagrant.getDefault();
-            vagrant.resume(VagrantProjectImpl.create(project));
-        } catch (InvalidVagrantExecutableException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
-        }
+    protected boolean enable(Node[] nodes) {
+        return true;
     }
+
+    @Override
+    public String getName() {
+        return "Open Vagrantfile";
+    }
+
+    @Override
+    public HelpCtx getHelpCtx() {
+        return null;
+    }
+
 }

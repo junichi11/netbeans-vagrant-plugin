@@ -52,6 +52,7 @@ import javax.swing.event.DocumentListener;
 import org.netbeans.modules.vagrant.command.InvalidVagrantExecutableException;
 import org.netbeans.modules.vagrant.command.Vagrant;
 import org.netbeans.modules.vagrant.ui.options.GeneralPanel;
+import org.netbeans.modules.vagrant.utils.UiUtils;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.filesystems.FileChooserBuilder;
@@ -68,7 +69,6 @@ public class VagrantInitPanel extends JPanel {
     private static final long serialVersionUID = 8375589254881469226L;
     private final ChangeSupport changeSupport = new ChangeSupport(this);
     private DialogDescriptor dialogDescriptor;
-    private static final String VAGRANT_LAST_FOLDER_SUFFIX = ".vagrant-root"; // NOI18N
 
     /**
      * Creates new form VagrantInitPanel
@@ -221,7 +221,7 @@ public class VagrantInitPanel extends JPanel {
 
     @NbBundle.Messages("VagrantInitPanel.browse_title=Select Vagrant Root")
     private void browseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseButtonActionPerformed
-        File vagrant = new FileChooserBuilder(GeneralPanel.class.getName() + VAGRANT_LAST_FOLDER_SUFFIX)
+        File vagrant = new FileChooserBuilder(GeneralPanel.class.getName() + UiUtils.VAGRANT_LAST_FOLDER_SUFFIX)
                 .setTitle(Bundle.VagrantInitPanel_browse_title())
                 .setDirectoriesOnly(true)
                 .showOpenDialog();

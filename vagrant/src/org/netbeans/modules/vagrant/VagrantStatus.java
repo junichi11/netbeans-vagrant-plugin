@@ -43,7 +43,6 @@ package org.netbeans.modules.vagrant;
 
 import java.util.List;
 import javax.swing.event.ChangeListener;
-import org.netbeans.api.project.Project;
 import org.openide.util.Pair;
 
 /**
@@ -51,14 +50,14 @@ import org.openide.util.Pair;
  *
  * @author junichi11
  */
-public interface VagrantStatus {
+public interface VagrantStatus<T> {
 
     /**
      * Get all status of projects.
      *
      * @return status
      */
-    public List<Pair<Project, StatusLine>> getAll();
+    public List<Pair<T, StatusLine>> getAll();
 
     /**
      * Get status of a project.
@@ -66,14 +65,14 @@ public interface VagrantStatus {
      * @param project
      * @return status of a project. If status doesn't exist, empty list.
      */
-    public List<StatusLine> get(Project project);
+    public List<StatusLine> get(T project);
 
     /**
      * Remove status of a project.
      *
      * @param project
      */
-    public void remove(Project project);
+    public void remove(T project);
 
     /**
      * Update status of a project. Please run on another thread (e.g. use
@@ -82,7 +81,7 @@ public interface VagrantStatus {
      *
      * @param project
      */
-    public void update(Project project);
+    public void update(T project);
 
     /**
      * Add {@link ChangeListener}.
