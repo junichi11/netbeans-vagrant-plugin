@@ -4,7 +4,7 @@
     <groupId>com.junichi11.netbeans.modules</groupId>
     <artifactId>netbeans-vagrant</artifactId>
     <!-- change the version of build.xml -->
-    <version>1.3.0</version>
+    <version>1.4.0</version>
     <packaging>nbm</packaging>
     <name>Vagrant Support</name>
     <url>https://github.com/junichi11/netbeans-vagrant-plugin</url>
